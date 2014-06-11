@@ -5,7 +5,7 @@ import numpy as np
 import googleplaces
 import cv2
 
-API_KEY_FILE = "keys/google.key" # file with Google Maps API Key on first line
+API_KEY_FILE = "StreetsAhead/keys/google.key" # file with Google Maps API Key on first line
 with open(API_KEY_FILE, 'r') as ff:
     API_KEY = ff.readline().replace('\n', '')
 gp = googleplaces.GooglePlaces(API_KEY)
@@ -72,4 +72,3 @@ if __name__ == "__main__":
     for loc in locs:
         lat, lng, heading = loc
         imgList.append(getImage(lat, lng, heading))
-
