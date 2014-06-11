@@ -23,10 +23,15 @@ def getLabelEncoder():
 def getIcdar2013WordList(dataDir, gtFileList):
     wordList = []
     for gtFile in gtFileList:
-        df = pd.read_csv(dataDir + '/' +gtFile, delim_whitespace=True,
-                         names=('x1','y1','x2','y2','word'))
-        area = (df['x2'] - df['x1']) * (df['y2'] - df['y1'])
-        
+        try: # val set has comma-separation, train set is just spaces
+            df = pd.read_csv(dataDir + '/' +gtFile, delim_whitespace=True,
+                            names=('x1','y1','x2','y2','word'))
+            area = (df['x2'] - df['x1']) * (df['y2'] - df['y1'])
+        except:
+            df = pd.read_csv(dataDir + '/' +gtFile,
+                            names=('x1','y1','x2','y2','word'))
+            area = (df['x2'] - df['x1']) * (df['y2'] - df['y1'])
+
         # use largest word as search string
         word = df[area == area.max()]['word'].iloc[0]
 
@@ -128,7 +133,20 @@ def create_imagenet(trainDir, trainFile, valDir, valFile):
     os.system("GLOG_logtostderr=1 {}/convert_imageset.bin {} {}" \
         "imagenet_train_leveldb 1".format(toolDir, trainDir, trainFile))
 
+    print "Done creating training leveldb."
+
     os.system("GLOG_logtostderr=1 {}/convert_imageset.bin {} {}" \
         "imagenet_val_leveldb 1".format(toolDir, valDir, valFile))
 
-    print "Done creating leveldb."
+    print "Done creating validation leveldb."
+
+if __name__ == "__main__":
+
+    trainDir = "/Users/mgeorge/insight/icdar2013/localization/train"
+    valDir = "/Users/mgeorge/insight/icdar2013/localization/test"
+
+    convertIcdar2013Localization(trainDir, "train")
+    convertIcdar2013Localization(valDir, "val")
+
+    create_imagenet(trainDir, trainDir + "trainWordLen.txt",
+                    valDir, valDir + "valWordLen.txt")
