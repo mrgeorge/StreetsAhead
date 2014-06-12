@@ -143,6 +143,12 @@ def computeImageMean(levelDB, outMeanProtoFile):
     os.system("{}/compute_image_mean.bin {}/{} {}/{}".format(
         toolDir, LEVELDB_DIR, levelDB, PROTO_DIR, outMeanProtoFile))
 
+def train(prototxtFile):
+    """Port of train_imagenet.sh"""
+    toolDir = CAFFE_DIR + "/build/tools"
+    os.system("GLOG_logtostderr=1 {}/train_net.bin {}".format(toolDir,
+                                                              prototxtFile))
+
 if __name__ == "__main__":
 
     trainDir = "/Users/mgeorge/insight/icdar2013/localization/train"
@@ -158,3 +164,6 @@ if __name__ == "__main__":
 
     trainMeanProto = "icdar2013_mean.binaryproto"
     computeImageMean(trainLevelDB, trainMeanProto)
+
+    prototxtFile = "/Users/mgeorge/insight/protos/icdar2013_solver.prototxt"
+    train(prototxtFile)
