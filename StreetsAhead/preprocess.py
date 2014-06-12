@@ -8,6 +8,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 CAFFE_DIR = "/Users/mgeorge/insight/caffe"
+LEVELDB_DIR = "/Users/mgeorge/insight/leveldbs"
 MAX_L = 5 # longest string to look for
 N_NETS = MAX_L + 1 # one network for each char + one for length fig 12 1312.6082
 
@@ -116,7 +117,7 @@ def convertIcdar2013Localization(dataDir, outPrefix, imgExt='jpg',
         print "Wrote " + outFilename
 
 
-def create_imagenet(trainDir, trainFile, valDir, valFile):
+def createLevelDB(imgDir, labelFile, outPrefix):
     """Port of caffe/examples/imagenet/create_imagenet.sh
 
     Inputs:
@@ -130,15 +131,11 @@ def create_imagenet(trainDir, trainFile, valDir, valFile):
 
     print "Creating leveldb..."
 
-    os.system("GLOG_logtostderr=1 {}/convert_imageset.bin {} {}" \
-        "imagenet_train_leveldb 1".format(toolDir, trainDir, trainFile))
+    os.system("GLOG_logtostderr=1 {}/convert_imageset.bin {}/ {} " \
+        "{}/{}_leveldb 1".format(toolDir, imgDir, labelFile, LEVELDB_DIR,
+                                 outPrefix))
 
-    print "Done creating training leveldb."
-
-    os.system("GLOG_logtostderr=1 {}/convert_imageset.bin {} {}" \
-        "imagenet_val_leveldb 1".format(toolDir, valDir, valFile))
-
-    print "Done creating validation leveldb."
+    print "Done creating leveldb."
 
 if __name__ == "__main__":
 
@@ -148,5 +145,5 @@ if __name__ == "__main__":
     convertIcdar2013Localization(trainDir, "train")
     convertIcdar2013Localization(valDir, "val")
 
-    create_imagenet(trainDir, trainDir + "trainWordLen.txt",
-                    valDir, valDir + "valWordLen.txt")
+    createLevelDB(trainDir, trainDir + "/trainWordLen.txt", "icdar2013_train")
+    createLevelDB(valDir, valDir + "/valWordLen.txt", "icdar2013_val")
