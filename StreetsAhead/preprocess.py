@@ -1,5 +1,4 @@
 import os
-import glob
 import string
 import re
 
@@ -8,9 +7,6 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from BeautifulSoup import BeautifulStoneSoup
 
-CAFFE_DIR = "/Users/mgeorge/insight/caffe"
-LEVELDB_DIR = "/Users/mgeorge/insight/leveldbs"
-PROTO_DIR = "/Users/mgeorge/insight/protos"
 MAX_L = 5 # longest string to look for
 N_NETS = MAX_L + 1 # one network for each char + one for length fig 12 1312.6082
 
@@ -118,38 +114,6 @@ def convertIcdar2013Localization(dataDir, outPrefix, imgExt='jpg',
             ff.writelines(lines)
         print "Wrote " + outFilename
 
-
-def createLevelDB(imgDir, labelFile, outLevelDB):
-    """Port of caffe/examples/imagenet/create_imagenet.sh
-
-    Inputs:
-        trainDir - name of dir with training images
-        trainFile - file with list of image names and labels
-        valDir - name of dir with validation images
-        valFile - file with list of image names and labels
-    """
-
-    toolDir = CAFFE_DIR + "/build/tools"
-
-    print "Creating leveldb..."
-
-    os.system("GLOG_logtostderr=1 {}/convert_imageset.bin {}/ {} " \
-        "{}/{} 1".format(toolDir, imgDir, labelFile, LEVELDB_DIR, outLevelDB))
-
-    print "Done creating leveldb."
-
-def computeImageMean(levelDB, outMeanProtoFile):
-    """Port of make_imagenet_mean.sh"""
-    toolDir = CAFFE_DIR + "/build/tools"
-    os.system("{}/compute_image_mean.bin {}/{} {}/{}".format(
-        toolDir, LEVELDB_DIR, levelDB, PROTO_DIR, outMeanProtoFile))
-
-def train(prototxtFile):
-    """Port of train_imagenet.sh"""
-    toolDir = CAFFE_DIR + "/build/tools"
-    os.system("GLOG_logtostderr=1 {}/train_net.bin {}".format(toolDir,
-                                                              prototxtFile))
-
 def svtXML(xmlFile):
     """Parse StreetViewText XML files to get image name list and word list"""
     with open(xmlFile, 'r') as ff:
@@ -166,7 +130,7 @@ def svtXML(xmlFile):
         for trs in im.findAll("taggedrectangles"):
             for tr in trs.findAll("taggedrectangle"):
                 word = tr.text
-                area = int(tr.attrs[0][1]) * int(tr.attrs[1][1])
+                area = int(tr.attrs[0][1]) * int(tr.attrs[1][1]) # height*width
                 if area > maxArea:
                     maxArea = area
                     biggestWord = word
@@ -182,18 +146,3 @@ if __name__ == "__main__":
     convertIcdar2013Localization(trainDir, "train")
     convertIcdar2013Localization(valDir, "val")
 
-#    for name in ("Char0", "Char1", "Char2", "WordLen"):
-    for name in ("Char0",):
-
-        trainLevelDB = "icdar2013_{}_train_leveldb_short".format(name)
-        valLevelDB = "icdar2013_{}_val_leveldb_short".format(name)
-
-        createLevelDB(trainDir, trainDir + "/train{}.txt".format(name),
-                      trainLevelDB)
-        createLevelDB(valDir, valDir + "/val{}.txt".format(name), valLevelDB)
-
-        trainMeanProto = "icdar2013_{}_mean_short.binaryproto".format(name)
-        computeImageMean(trainLevelDB, trainMeanProto)
-
-        prototxtFile = "/Users/mgeorge/insight/protos/icdar2013_{}_solver_short.prototxt".format(name)
-        train(prototxtFile)

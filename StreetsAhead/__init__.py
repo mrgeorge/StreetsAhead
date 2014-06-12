@@ -1,3 +1,3 @@
-import ingest
-import digest
 import preprocess
+import setupCaffe
+import ingest
