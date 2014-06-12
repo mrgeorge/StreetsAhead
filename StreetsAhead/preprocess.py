@@ -9,6 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 
 CAFFE_DIR = "/Users/mgeorge/insight/caffe"
 LEVELDB_DIR = "/Users/mgeorge/insight/leveldbs"
+PROTO_DIR = "/Users/mgeorge/insight/protos"
 MAX_L = 5 # longest string to look for
 N_NETS = MAX_L + 1 # one network for each char + one for length fig 12 1312.6082
 
@@ -117,7 +118,7 @@ def convertIcdar2013Localization(dataDir, outPrefix, imgExt='jpg',
         print "Wrote " + outFilename
 
 
-def createLevelDB(imgDir, labelFile, outPrefix):
+def createLevelDB(imgDir, labelFile, outLevelDB):
     """Port of caffe/examples/imagenet/create_imagenet.sh
 
     Inputs:
@@ -132,10 +133,15 @@ def createLevelDB(imgDir, labelFile, outPrefix):
     print "Creating leveldb..."
 
     os.system("GLOG_logtostderr=1 {}/convert_imageset.bin {}/ {} " \
-        "{}/{}_leveldb 1".format(toolDir, imgDir, labelFile, LEVELDB_DIR,
-                                 outPrefix))
+        "{}/{} 1".format(toolDir, imgDir, labelFile, LEVELDB_DIR, outLevelDB))
 
     print "Done creating leveldb."
+
+def computeImageMean(levelDB, outMeanProtoFile):
+    """Port of make_imagenet_mean.sh"""
+    toolDir = CAFFE_DIR + "/build/tools"
+    os.system("{}/compute_image_mean.bin {}/{} {}/{}".format(
+        toolDir, LEVELDB_DIR, levelDB, PROTO_DIR, outMeanProtoFile))
 
 if __name__ == "__main__":
 
@@ -145,5 +151,10 @@ if __name__ == "__main__":
     convertIcdar2013Localization(trainDir, "train")
     convertIcdar2013Localization(valDir, "val")
 
-    createLevelDB(trainDir, trainDir + "/trainWordLen.txt", "icdar2013_train")
-    createLevelDB(valDir, valDir + "/valWordLen.txt", "icdar2013_val")
+    trainLevelDB = "icdar2013_train_leveldb"
+    valLevelDB = "icdar2013_val_leveldb"
+    createLevelDB(trainDir, trainDir + "/trainWordLen.txt", trainLevelDB)
+    createLevelDB(valDir, valDir + "/valWordLen.txt", valLevelDB)
+
+    trainMeanProto = "icdar2013_mean.binaryproto"
+    computeImageMean(trainLevelDB, trainMeanProto)
