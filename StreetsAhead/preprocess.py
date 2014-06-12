@@ -6,6 +6,7 @@ import re
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+from BeautifulSoup import BeautifulStoneSoup
 
 CAFFE_DIR = "/Users/mgeorge/insight/caffe"
 LEVELDB_DIR = "/Users/mgeorge/insight/leveldbs"
@@ -149,6 +150,30 @@ def train(prototxtFile):
     os.system("GLOG_logtostderr=1 {}/train_net.bin {}".format(toolDir,
                                                               prototxtFile))
 
+def svtXML(xmlFile):
+    """Parse StreetViewText XML files to get image name list and word list"""
+    with open(xmlFile, 'r') as ff:
+        xml = ff.read()
+
+    imgFileList = []
+    wordList = []
+
+    bs = BeautifulStoneSoup(xml)
+    for im in bs.findAll("image"):
+        imgFileList.append(im.imagename.string)
+        maxArea = 0
+        biggestWord = ''
+        for trs in im.findAll("taggedrectangles"):
+            for tr in trs.findAll("taggedrectangle"):
+                word = tr.text
+                area = int(tr.attrs[0][1]) * int(tr.attrs[1][1])
+                if area > maxArea:
+                    maxArea = area
+                    biggestWord = word
+        wordList.append(biggestWord)
+
+    return (imgFileList, wordList)
+
 if __name__ == "__main__":
 
     trainDir = "/Users/mgeorge/insight/icdar2013/localization/train"
@@ -157,13 +182,18 @@ if __name__ == "__main__":
     convertIcdar2013Localization(trainDir, "train")
     convertIcdar2013Localization(valDir, "val")
 
-    trainLevelDB = "icdar2013_train_leveldb"
-    valLevelDB = "icdar2013_val_leveldb"
-    createLevelDB(trainDir, trainDir + "/trainWordLen.txt", trainLevelDB)
-    createLevelDB(valDir, valDir + "/valWordLen.txt", valLevelDB)
+#    for name in ("Char0", "Char1", "Char2", "WordLen"):
+    for name in ("Char0",):
 
-    trainMeanProto = "icdar2013_mean.binaryproto"
-    computeImageMean(trainLevelDB, trainMeanProto)
+        trainLevelDB = "icdar2013_{}_train_leveldb_short".format(name)
+        valLevelDB = "icdar2013_{}_val_leveldb_short".format(name)
 
-    prototxtFile = "/Users/mgeorge/insight/protos/icdar2013_solver.prototxt"
-    train(prototxtFile)
+        createLevelDB(trainDir, trainDir + "/train{}.txt".format(name),
+                      trainLevelDB)
+        createLevelDB(valDir, valDir + "/val{}.txt".format(name), valLevelDB)
+
+        trainMeanProto = "icdar2013_{}_mean_short.binaryproto".format(name)
+        computeImageMean(trainLevelDB, trainMeanProto)
+
+        prototxtFile = "/Users/mgeorge/insight/protos/icdar2013_{}_solver_short.prototxt".format(name)
+        train(prototxtFile)
