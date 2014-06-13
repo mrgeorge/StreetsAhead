@@ -37,21 +37,21 @@ def train(prototxtFile):
 
 if __name__ == "__main__":
 
-    trainDir = "/Users/mgeorge/insight/icdar2013/localization/train"
-    valDir = "/Users/mgeorge/insight/icdar2013/localization/test"
+    trainDir = "/Users/mgeorge/insight/masterTrainDir"
+    valDir = "/Users/mgeorge/insight/masterValDir"
 
 #    for name in ("Char0", "Char1", "Char2", "WordLen"):
     for name in ("Char0",):
 
-        trainLevelDB = "icdar2013_{}_train_leveldb_short".format(name)
-        valLevelDB = "icdar2013_{}_val_leveldb_short".format(name)
+        trainLevelDB = "master_{}_train_leveldb_short".format(name)
+        valLevelDB = "master_{}_val_leveldb_short".format(name)
 
         createLevelDB(trainDir, trainDir + "/train{}.txt".format(name),
                       trainLevelDB)
         createLevelDB(valDir, valDir + "/val{}.txt".format(name), valLevelDB)
 
-        trainMeanProto = "icdar2013_{}_mean_short.binaryproto".format(name)
+        trainMeanProto = "master_{}_mean_short.binaryproto".format(name)
         computeImageMean(trainLevelDB, trainMeanProto)
 
-        prototxtFile = "/Users/mgeorge/insight/protos/icdar2013_{}_solver_short.prototxt".format(name)
+        prototxtFile = "/Users/mgeorge/insight/protos/master_{}_solver_short.prototxt".format(name)
         train(prototxtFile)
