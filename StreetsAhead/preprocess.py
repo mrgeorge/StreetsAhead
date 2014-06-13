@@ -1,6 +1,7 @@
 import os
 import string
 import re
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -19,6 +20,14 @@ def getLabelEncoder():
 
     return le
 
+def cleanWord(word):
+    # strip nonalphanumeric characters
+    word = re.sub('[\W]', '', word)
+    # truncate to no more than MAX_L chars
+    word = word[:MAX_L]
+
+    return word
+
 def getIcdar2013WordList(dataDir, gtFileList):
     wordList = []
     for gtFile in gtFileList:
@@ -34,13 +43,7 @@ def getIcdar2013WordList(dataDir, gtFileList):
         # use largest word as search string
         word = df[area == area.max()]['word'].iloc[0]
 
-        # strip nonalphanumeric characters
-        word = re.sub('[\W]', '', word)
-
-        # truncate to no more than MAX_L chars
-        word = word[:MAX_L]
-
-        wordList.append(word)
+        wordList.append(cleanWord(word))
 
     return wordList
 
@@ -74,21 +77,35 @@ def wordsToChars(wordList):
 
     return (lenList, charMat)
 
-def makeLabelFiles(objectives, dataDir, imgFileList, lenList, charMat):
+def makeLabelFiles(objectives, imgDir, imgFileList, lenList, charMat,
+                   outPrefix):
+    """
+    Inputs:
+        objectives - tuple of strings, e.g. ("Char0", "WordLen")
+        imgDir - dir where images live and where output label file will go
+        imgFileList - list of image names (no paths)
+        lenList - list of word lengths
+        charMat - 2d array nWords x nChars with word splits
+
+    Returns:
+        outFilenames - list of output files with image name + label, one per line
+        (also these files are created and written)
+    """
+
     # Print training file for length NN
     # here the labels depend on objectives
     #    just 0-MAX_L for the length of the word
     # TO DO - add option for a class that means >MAX_L for longer words
     outFilenames = []
     for obj in objectives:
-        outFilename = dataDir + '/' + outPrefix + "{}.txt".format(obj)
+        outFilename = "{}/{}{}.txt".format(imgDir, outPrefix, obj)
         outFilenames.append(outFilename)
 
-        if obj == "WordLen"
+        if obj == "WordLen":
             with open(outFilename, 'w') as ff:
                 lines = ["{} {}\n".format(imgFile, wordLen)
                         for imgFile, wordLen in zip(imgFileList, lenList)]
-            ff.writelines(lines)
+                ff.writelines(lines)
         else:
             # Print training file for character NNs
             ii = int(obj[-1]) # expects obj to be form 'Char0' or 'Char1'
@@ -98,7 +115,7 @@ def makeLabelFiles(objectives, dataDir, imgFileList, lenList, charMat):
             with open(outFilename, 'w') as ff:
                 lines = ["{} {}\n".format(imgFile, le.transform(charList[ii]))
                         for imgFile, charList in zip(imgFileList, charMat)]
-            ff.writelines(lines)
+                ff.writelines(lines)
 
         print "Wrote " + outFilename
 
@@ -127,7 +144,7 @@ def convertIcdar2013Localization(dataDir, outPrefix, objectives, imgExt='jpg',
 
     lenList, charMat = wordsToChars(wordList)
     outFilenames = makeLabelFiles(objectives, dataDir, imgFileList, lenList,
-                                  charMat)
+                                  charMat, outPrefix)
     return outFilenames
 
 def svtXML(xmlFile):
@@ -140,7 +157,8 @@ def svtXML(xmlFile):
 
     bs = BeautifulStoneSoup(xml)
     for im in bs.findAll("image"):
-        imgFileList.append(im.imagename.string)
+        imgFile = im.imagename.string.split('/')[-1] # keep only file name
+        imgFileList.append(imgFile)
         maxArea = 0
         biggestWord = ''
         for trs in im.findAll("taggedrectangles"):
@@ -150,11 +168,11 @@ def svtXML(xmlFile):
                 if area > maxArea:
                     maxArea = area
                     biggestWord = word
-        wordList.append(biggestWord)
+        wordList.append(cleanWord(biggestWord))
 
     return (imgFileList, wordList)
 
-def convertSVT(svtDir, svtXMLFile, objectives):
+def convertSVT(svtImgDir, svtXMLFile, outPrefix, objectives):
     """Get list of images and labels for StreetView Text dataset
 
     Goal is to produce files like train.txt and val.txt used in Caffe
@@ -170,24 +188,109 @@ def convertSVT(svtDir, svtXMLFile, objectives):
 
     imgFileList, wordList = svtXML(svtXMLFile)
     lenList, charMat = wordsToChars(wordList)
-    outFilenames = makeLabelFiles(objectives, svtDir, imgFileList, lenList,
-                                  charMat)
+    outFilenames = makeLabelFiles(objectives, svtImgDir, imgFileList, lenList,
+                                  charMat, outPrefix)
     return outFilenames
+
+def convertChars74K(topDir, chars74KTypes, outPrefix, objectives, imgExt='png'):
+
+    le = getLabelEncoder()
+    fullOutfileList = []
+    fullImgDirList = []
+    for typeDir in chars74KTypes:
+        for ii in range(1,63):
+            sampleDir = "Sample{:03d}".format(ii)
+            fullDir = "{}/{}/{}".format(topDir,typeDir,sampleDir)
+            imgFileList = [ff for ff in os.listdir(fullDir)
+                           if re.search('.'+imgExt+'$', ff)]
+            lenList = [1] * len(imgFileList) # just one char each
+            letter = le.inverse_transform(ii)
+            charList = [letter]
+            charList.extend(np.repeat('', MAX_L - 1))
+            charMat = np.tile(charList, (len(imgFileList), 1))
+
+            outFilenames = makeLabelFiles(objectives, fullDir, imgFileList, lenList,
+                                          charMat, outPrefix)
+            fullOutfileList.extend(outFilenames)
+            fullImgDirList.append(fullDir)
+
+    return (fullOutfileList, fullImgDirList)
+
+def makeMasterDataDir(masterDataDir, labelFiles, imgDirs, outPrefix):
+
+    # concatenate label files into master label file
+    # copy each image file to master dir
+    masterLabelFile = "{}/{}.txt".format(masterDataDir, outPrefix)
+    with open(masterLabelFile, 'w') as mlf:
+        for labelFile, imgDir, ext in zip(labelFiles, imgDirs, range(len(imgDirs))):
+            with open(labelFile, 'r') as lf:
+                lfText = lf.read()
+                for line in lfText.splitlines():
+                    origName, label = line.split(' ')
+                    mlf.write("{}_{} {}\n".format(origName, ext, label))
+                    srcFile = "{}/{}".format(imgDir, origName)
+                    shutil.copy2(srcFile, "{}/{}_{}".format(masterDataDir,
+                                                            origName, ext))
+
+    return masterLabelFile
 
 if __name__ == "__main__":
 
 #    objectives = ("Char0", "Char1", "Char2", "WordLen")
     objectives = ("Char0",)
+    # TO DO - need to loop over some parts below to get different labels for each objective
 
     icdarTrainDir = "/Users/mgeorge/insight/icdar2013/localization/train"
     icdarValDir = "/Users/mgeorge/insight/icdar2013/localization/test"
 
-    icdarTrainLabelFiles = convertIcdar2013Localization(icdarTrainDir, "train")
-    icdarValLabelFiles = convertIcdar2013Localization(icdarValDir, "val")
+    icdarTrainLabelFiles = convertIcdar2013Localization(icdarTrainDir, "train",
+                                                        objectives)
+    icdarValLabelFiles = convertIcdar2013Localization(icdarValDir, "val",
+                                                      objectives)
 
-    svtDir = "/Users/mgeorge/insight/streetview_text/data"
+    svtImgDir = "/Users/mgeorge/insight/streetview_text/data/img"
     # Note: I'm switching the train and test sets since test is larger
-    svtTrainXML = svtDir + "/test.xml"
-    svtValXML = svtDir + "/train.xml"
+    svtTrainXML = "/Users/mgeorge/insight/streetview_text/data/test.xml"
+    svtValXML = "/Users/mgeorge/insight/streetview_text/data/train.xml"
 
-    svtTrainLabelFiles
+    svtTrainLabelFiles = convertSVT(svtImgDir, svtTrainXML, "train",
+                                    objectives)
+    svtValLabelFiles = convertSVT(svtImgDir, svtValXML, "val",
+                                  objectives)
+
+    chars74KDir = "/Users/mgeorge/insight/chars74k/English"
+    chars74KTypes = ["Fnt", "Hnd/Img", "Img/GoodImg/Bmp"] # subdirs with images
+    chars74KTrainLabelFiles, chars74KTrainImgDirs = convertChars74K(chars74KDir,
+        chars74KTypes, "train", objectives)
+
+
+    # compile all the label files
+    allTrainLabelFiles = []
+    allTrainLabelFiles.extend(icdarTrainLabelFiles)
+    allTrainLabelFiles.extend(svtTrainLabelFiles)
+    allTrainLabelFiles.extend(chars74KTrainLabelFiles)
+
+    allValLabelFiles = []
+    allValLabelFiles.extend(icdarValLabelFiles)
+    allValLabelFiles.extend(svtTrainLabelFiles)
+
+    # get corresponding image dirs
+    allTrainImgDirs = []
+    allTrainImgDirs.extend([icdarTrainDir] * len(icdarTrainLabelFiles))
+    allTrainImgDirs.extend([svtImgDir] * len(svtTrainLabelFiles))
+    allTrainImgDirs.extend(chars74KTrainImgDirs)
+
+    allValImgDirs = []
+    allValImgDirs.extend([icdarValDir] * len(icdarValLabelFiles))
+    allValImgDirs.extend([svtImgDir] * len(svtValLabelFiles))
+
+    masterTrainDataDir = "/Users/mgeorge/insight/masterTrainData"
+    masterValDataDir = "/Users/mgeorge/insight/masterValData"
+    masterTrainLabelFile = makeMasterDataDir(masterTrainDataDir,
+                                             allTrainLabelFiles,
+                                             allTrainImgDirs,
+                                             "train")
+    masterValLabelFile = makeMasterDataDir(masterValDataDir,
+                                           allValLabelFiles,
+                                           allValImgDirs,
+                                           "val")
