@@ -2,3 +2,7 @@
 *~
 StreetsAhead/keys/
 caffe_*_iter_*
+*.DS_Store
+webapps/venv/
+webapps/app/static/vendor
+webapps/node_modules
