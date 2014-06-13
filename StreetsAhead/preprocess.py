@@ -36,7 +36,7 @@ def getIcdar2013WordList(dataDir, gtFileList):
             df = pd.read_csv(dataDir + '/' +gtFile, delim_whitespace=True,
                             names=('x1','y1','x2','y2','word'))
             area = (df['x2'] - df['x1']) * (df['y2'] - df['y1'])
-        except:
+        except TypeError:
             df = pd.read_csv(dataDir + '/' +gtFile,
                             names=('x1','y1','x2','y2','word'))
             area = (df['x2'] - df['x1']) * (df['y2'] - df['y1'])
@@ -217,7 +217,7 @@ def convertChars74K(topDir, chars74KTypes, outPrefix, objectives, imgExt='png'):
 
     return (fullOutfileList, fullImgDirList)
 
-def makeMasterDataDir(masterDataDir, labelFiles, imgDirs, outPrefix, outScale=256):
+def makeMasterDataDir(masterDataDir, labelFiles, imgDirs, outPrefix, outScale=128):
 
     # concatenate label files into master label file
     # copy each image file to master dir
@@ -233,7 +233,15 @@ def makeMasterDataDir(masterDataDir, labelFiles, imgDirs, outPrefix, outScale=25
 
                     img = skimage.io.imread(srcFile)
                     img = skimage.transform.resize(img, (outScale, outScale))
-                    skimage.io.imsave("{}/ext{}_{}".format(masterDataDir,ext,origName), img)
+                    try:
+                        skimage.io.imsave("{}/ext{}_{}".format(masterDataDir,
+                                                               ext, origName),
+                                                               img)
+                    except IOError:
+                        os.mkdir(masterDataDir)
+                        skimage.io.imsave("{}/ext{}_{}".format(masterDataDir,
+                                                               ext, origName),
+                                                               img)
 
     return masterLabelFile
 
