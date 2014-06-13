@@ -1,3 +1,4 @@
 *.pyc
 *~
 StreetsAhead/keys/
+caffe_*_iter_*
