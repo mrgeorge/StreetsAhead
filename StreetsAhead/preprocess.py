@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from BeautifulSoup import BeautifulStoneSoup
+import skimage.io, skimage.transform
 
 MAX_L = 5 # longest string to look for
 N_NETS = MAX_L + 1 # one network for each char + one for length fig 12 1312.6082
@@ -216,7 +217,7 @@ def convertChars74K(topDir, chars74KTypes, outPrefix, objectives, imgExt='png'):
 
     return (fullOutfileList, fullImgDirList)
 
-def makeMasterDataDir(masterDataDir, labelFiles, imgDirs, outPrefix):
+def makeMasterDataDir(masterDataDir, labelFiles, imgDirs, outPrefix, outScale=256):
 
     # concatenate label files into master label file
     # copy each image file to master dir
@@ -227,10 +228,12 @@ def makeMasterDataDir(masterDataDir, labelFiles, imgDirs, outPrefix):
                 lfText = lf.read()
                 for line in lfText.splitlines():
                     origName, label = line.split(' ')
-                    mlf.write("{}_{} {}\n".format(origName, ext, label))
+                    mlf.write("ext{}_{} {}\n".format(ext, origName, label))
                     srcFile = "{}/{}".format(imgDir, origName)
-                    shutil.copy2(srcFile, "{}/{}_{}".format(masterDataDir,
-                                                            origName, ext))
+
+                    img = skimage.io.imread(srcFile)
+                    img = skimage.transform.resize(img, (outScale, outScale))
+                    skimage.io.imsave("{}/ext{}_{}".format(masterDataDir,ext,origName), img)
 
     return masterLabelFile
 
