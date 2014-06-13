@@ -1,17 +1,17 @@
 import re
 import urllib
-import numpy as np
 
+import numpy as np
 import googleplaces
 import cv2
 
-API_KEY_FILE = "StreetsAhead/keys/google.key" # file with Google Maps API Key on first line
+API_KEY_FILE = "/Users/mgeorge/insight/StreetsAhead/StreetsAhead/keys/google.key" # file with Google Maps API Key on first line
 with open(API_KEY_FILE, 'r') as ff:
     API_KEY = ff.readline().replace('\n', '')
 gp = googleplaces.GooglePlaces(API_KEY)
 
-inputKeywordStr = "Zachary's"
-#inputKeywordStr = "CREAM"
+#inputKeywordStr = "Zachary's"
+inputKeywordStr = "CREAM"
 inputLocationStr = "Berkeley, CA"
 
 def getPlaceFromQuery(inputKeywordStr, inputLocationStr):
@@ -48,19 +48,14 @@ def getLocations(lat0, lng0):
     headings = [0, 45, 315]
     return zip(lats, lngs, headings)
 
-def getImage(lat, lng, heading, size="640x640", fov=50):
+def getImageUrl(lat, lng, heading, size="400x400", fov=50):
     """Call StreetView API to get image for coordinates"""
 
     urlbase = "http://maps.googleapis.com/maps/api/streetview"
 
     url = "{urlbase}?location={lat},{lng}&heading={heading}&fov={fov}&size={size}".format(urlbase=urlbase, lat=lat, lng=lng, heading=heading, fov=fov, size=size)
 
-    #http://stackoverflow.com/questions/21061814/how-can-i-read-an-image-from-an-internet-url-in-python-cv2-scikit-image-and-ma
-    req = urllib.urlopen(url)
-    arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-    img = cv2.imdecode(arr, -1)
-
-    return img    
+    return url
 
 if __name__ == "__main__":
 
@@ -68,7 +63,10 @@ if __name__ == "__main__":
     queryList = getQueryListFromPlace(place)
 
     locs = getLocations(place.geo_location['lat'], place.geo_location['lng'])
-    imgList = []
+    tokens = []
     for loc in locs:
         lat, lng, heading = loc
-        imgList.append(getImage(lat, lng, heading))
+        tokens.append(camfindPost(getImageUrl(lat, lng, heading)))
+
+    for token in tokens:
+        print camfindGet(token)
