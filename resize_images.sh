@@ -7,8 +7,6 @@ args=("$@")
 
 DATADIR=${args[0]}
 
-mkdir $DATADIR/full_res
-cp $DATADIR/*.jpg $DATADIR/full_res
-for name in $DATADIR/*.jpg; do
+for name in $DATADIR/*; do
     convert -resize 256x256\! $name $name
 done
