@@ -35,6 +35,12 @@ def train(prototxtFile):
     os.system("GLOG_logtostderr=1 {}/train_net.bin {}".format(toolDir,
                                                               prototxtFile))
 
+def resumeTraining(prototxtFile, solverstateFile):
+    """Port of resume_training.sh"""
+    toolDir = CAFFE_DIR + "/build/tools"
+    os.system("GLOG_logtostderr=1 {}/train_net.bin "\
+              "{} {}".format(toolDir, prototxtFile, solverstateFile))
+
 if __name__ == "__main__":
 
     trainDir = "/Users/mgeorge/insight/masterTrainData"
@@ -45,7 +51,6 @@ if __name__ == "__main__":
 
     for obj in objectives:
         print obj
-        print "creating leveldb"
         trainLevelDB = "master_{}_train_leveldb_short".format(obj)
         valLevelDB = "master_{}_val_leveldb_short".format(obj)
 
