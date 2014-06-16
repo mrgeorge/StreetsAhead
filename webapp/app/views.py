@@ -3,6 +3,11 @@ from app import app, host, port, user, passwd, db
 from app.helpers.database import con_db
 from forms import EntryForm
 
+import pymysql
+
+db = pymysql.connect(user="flask", host="localhost", port=3306, db="StreetsAhead")
+cur = db.cursor()
+
 try:
     from StreetsAhead import ingest, imToText
 except ImportError: # add parent dir to python search path
@@ -29,7 +34,8 @@ def index():
     # Renders index.html.
     form = EntryForm()
     if form.validate_on_submit():
-        keywordStr, locStr = form.query.data.split(',')
+        inputQuery = form.query.data
+        keywordStr, locStr = inputQuery.split(',')
         place = ingest.getPlaceFromQuery(keywordStr, locStr)
         queryList = ingest.getQueryListFromPlace(place)
 
@@ -49,6 +55,9 @@ def index():
                 image.text = text
             else:
                 image.text = "NO TEXT FOUND"
+
+        cur.execute('INSERT INTO query (text) VALUES (%s);', (inputQuery,))
+        db.commit()
 
         return render_template('results.html', images=images)
     return render_template('search.html', title='Search string', form=form)
