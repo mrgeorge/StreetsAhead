@@ -60,15 +60,28 @@
 <div class="title">
     <h1> StreetsAhead </h1>
 </div>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul>
-    {% for message in messages %}
-        <li>{{ message }} </li>
-    {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
+
+<div style="text-align:center">
+  <form action="" method="post" name="search">
+    {{form.hidden_tag()}}
+    <p>
+      {{form.query(size=40)}}<br>
+      {% for error in form.errors.query %}
+      <span style="color: red;">[{{error}}]</span>
+      {% endfor %}<br>
+    </p>
+    <p><input type="submit" value="Search"></p>
+  </form>
+</div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Moved above content block since they may need it loaded first
+         place below content for faster loading -->
+    <script type=text/javascript>$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
+    <script src="{{ url_for('static', filename='vendor/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/dist/js/bootstrap.min.js') }}"></script>
 
     <!-- Main content injection point -->
     <!-- Within the content block, wrap content with <div id="wrap"><div>
@@ -77,13 +90,6 @@
 
     <!-- The footer is placed within its own block to render properly -->
     {% block footer %}{% endblock %}
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="{{ url_for('static', filename='vendor/jquery/dist/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/bootstrap/dist/js/bootstrap.min.js') }}"></script>
 
     <!-- Page specific script files -->
     {% block scripts %}{% endblock %}
