@@ -16,14 +16,41 @@ function initialize() {
   var autocomplete = new google.maps.places.Autocomplete(input);
   autocomplete.bindTo('bounds', map);
 
-  var infowindow = new google.maps.InfoWindow();
+  var boxText = document.createElement("div");
+  boxText.style.cssText = "border: 1px solid black; margin-top: 1px; background: white; padding: 10px;";
+  boxText.innerHTML = "";
+  var myOptions = {
+                content: boxText,
+                disableAutoPan: false,
+                maxWidth: 0,
+                pixelOffset: new google.maps.Size(-310, 30),//X axis should be half the size of box width
+                zIndex: null,
+                boxStyle: {
+//                  background: "url('tipbox.gif') no-repeat",
+                  background: "white",
+                  opacity: 1.,
+                  width: "610px",
+                  height: "250px",
+		  padding: "10px",
+		  border: "1px solid black"
+                 },
+                closeBoxMargin: "2px 2px 2px 2px",
+//                closeBoxURL: "http://www.google.com/intl/en_us/mapfiles/close.gif",
+                closeBoxURL: "",
+                infoBoxClearance: new google.maps.Size(10, 10),
+                isHidden: false,
+                pane: "floatPane",
+                enableEventPropagation: false
+        };
+
+  var ib = new InfoBox(myOptions);
+
   var marker = new google.maps.Marker({
     map: map,
     anchorPoint: new google.maps.Point(0, -29)
   });
 
   google.maps.event.addListener(autocomplete, 'place_changed', function() {
-    infowindow.close();
     marker.setVisible(false);
     var place = autocomplete.getPlace();
     if (!place.geometry) {
@@ -62,24 +89,26 @@ function initialize() {
 	"address": address,
 	"latitude": place.geometry.location.lat(),
 	"longitude": place.geometry.location.lng()
-    }, function() {});
-
-    infowindow.setContent('<div><strong>' + place.name + '</strong><br>' + address);
-    infowindow.open(map, marker);
-  });
-
-  // Sets a listener on a radio button to change the filter type on Places
-  // Autocomplete.
-  function setupClickListener(id, types) {
-    var radioButton = document.getElementById(id);
-    google.maps.event.addDomListener(radioButton, 'click', function() {
-      autocomplete.setTypes(types);
     });
-  }
 
-  setupClickListener('changetype-all', []);
-  setupClickListener('changetype-establishment', ['establishment']);
-  setupClickListener('changetype-geocode', ['geocode']);
+    // Define contents of infobox
+    var contentString = '<div id="ibtext"><strong>' + place.name + '</strong><br>'+
+          address +
+          '</div>'+
+	  '<div id="svdoublewide">' +
+            '<div class="leftbuff" style="float: left;">' +
+              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
+              '<p id="imtext">Street View</p>' +
+            '</div>' +
+            '<div class="rightbuff" style="float: right;">' +
+              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
+              '<p id="imtext">StreetsAhead</p>' +
+            '</div>' +
+          '</div>';
+
+      ib.setContent(contentString);
+      ib.open(map, marker);
+  });
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
