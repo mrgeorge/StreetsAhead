@@ -1,8 +1,11 @@
+var SAPanoStart = "null"; // keep track of initial SA position to toggle text labels
+
 function initialize() {
   var mapOptions = {
     center: new google.maps.LatLng(37.8717, -122.2728),
     zoom: 14
   };
+
   var map = new google.maps.Map(document.getElementById('map-canvas'),
     mapOptions);
 
@@ -91,7 +94,6 @@ function initialize() {
 	"longitude": place.geometry.location.lng()
     });
 
-
     // Define contents of infobox
     var contentString = '<div id="ibtext"><strong>' + place.name + '</strong><br>'+
           address +
@@ -144,7 +146,8 @@ function initialize() {
 	"latitude": place.geometry.location.lat(),
 	"longitude": place.geometry.location.lng()
         }, function(data) {
-	  panoGuess = data.pano_id
+	  panoGuess = data.pano_id;
+          SAPanoStart = panoGuess;
 
           var SVService = new google.maps.StreetViewService();
 //      SVService.getPanoramaByLocation(place.geometry.location, 50, function (panoData, status) {
@@ -189,9 +192,34 @@ function initialize() {
         document.getElementById('SAPano'),
         SAPanoOptions);
 
+      var marker1 = new MarkerWithLabel({
+        position: SAPano.getPosition(),
+	clickable: false,
+	opacity: 0.,
+	labelVisible: true,
+        draggable: false,
+        raiseOnDrag: false,
+        map: SAPano,
+        labelContent: "test marker label",
+        labelAnchor: new google.maps.Point(22, 0),
+        labelClass: "svlabels", // the CSS class for the label
+        labelStyle: {opacity: 0.5}
+      });
+
       SVPano.setVisible(true);
       SAPano.setVisible(true);
 
+      // Text label doesn't render well after moving from initial point
+      // hide it when current pano ID differs from original
+      google.maps.event.addListener(SAPano, 'pano_changed', function() {
+        if (SAPano.getPano() == SAPanoStart) {
+          marker1.setVisible(true);
+//          marker1.set("labelContent", SAPanoStart + SAPano.getPano());
+        } else {
+          marker1.setVisible(false);
+//          marker1.set("labelContent", "moved" + SAPanoStart + SAPano.getPano());
+        }
+      });
     });
   });
 }
