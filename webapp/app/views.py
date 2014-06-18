@@ -3,6 +3,9 @@ from app import app, host, port, user, passwd, db
 from app.helpers.database import con_db
 from forms import EntryForm
 
+import urllib2
+from BeautifulSoup import BeautifulStoneSoup
+
 import pymysql
 
 db = pymysql.connect(user="flask", host="localhost", port=3306, db="StreetsAhead")
@@ -104,3 +107,27 @@ def cache_query():
 
     print "executed cache query"
     return jsonify(result=0)
+
+@app.route('/_get_pano')
+def get_pano():
+    """Called by ajax post in places.js to get best outdoor pano from xml api
+
+    See discussion here: http://stackoverflow.com/questions/14796604/how-to-know-if-street-view-panorama-is-indoors-or-outdoors
+
+    This is a hacky way to get Google's guess for the best outdoor pano for
+    a given location.
+    """
+    lat = float(request.args.get('latitude', 0.))
+    lng = float(request.args.get('longitude', 0.))
+
+    urlbase = "http://cbk0.google.com/cbk?output=xml&hl=x-local"
+    ff = urllib2.urlopen("{}&ll={},{}".format(urlbase, lat, lng))
+    xml = ff.read()
+    ff.close()
+
+    bs = BeautifulStoneSoup(xml)
+    dp = bs.findAll("data_properties")[0]
+    pano_id = [attr[1] for attr in dp.attrs if attr[0]=='pano_id'][0]
+
+    print pano_id
+    return jsonify(pano_id=pano_id)
