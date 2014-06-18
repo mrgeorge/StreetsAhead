@@ -26,14 +26,17 @@ class Image(object):
         self.token = token
         self.text = text
 
-def queryToImages(form):
+def queryToLocs(form):
     inputQuery = form.query.data
     keywordStr, locStr = inputQuery.split(',')
     place = ingest.getPlaceFromQuery(keywordStr, locStr)
-    queryList = ingest.getQueryListFromPlace(place)
+#    queryList = ingest.getQueryListFromPlace(place)
 
     locs = ingest.getLocations(place.geo_location['lat'],
                                    place.geo_location['lng'])
+    return locs
+
+def locsToImages(locs):
     images = []
     for loc in locs:
         lat, lng, heading = loc
@@ -47,10 +50,10 @@ def queryToImages(form):
         if text is not None:
             image.text = text
         else:
-            image.text = "NO TEXT FOUND"
+            image.text = "NULL"
 
-    cur.execute('INSERT INTO query (text) VALUES (%s);', (inputQuery,))
-    db.commit()
+#    cur.execute('INSERT INTO query (text) VALUES (%s);', (inputQuery,))
+#    db.commit()
 
     return images
 
@@ -63,7 +66,7 @@ def index():
     # Renders index.html.
     form = EntryForm()
     if form.validate_on_submit():
-        images = queryToImages(form)
+        images = locsToImages(queryToLocs(form))
         return render_template('results.html', images=images, form=form)
     return render_template('search.html', title='Search string', form=form)
 
@@ -129,5 +132,17 @@ def get_pano():
     dp = bs.findAll("data_properties")[0]
     pano_id = [attr[1] for attr in dp.attrs if attr[0]=='pano_id'][0]
 
-    print pano_id
     return jsonify(pano_id=pano_id)
+
+@app.route('/_pano_to_text')
+def pano_to_text():
+
+    panoId = request.args.get('panoId', 0.)
+    panoLat = float(request.args.get('panoLat', 0.))
+    panoLng = float(request.args.get('panoLng', 0.))
+    heading = float(request.args.get('heading', 0.))
+
+    locs = ingest.getLocations(panoLat, panoLng, heading=heading)
+    images = locsToImages(locs)
+
+#    return jsonify([])
