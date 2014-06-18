@@ -101,24 +101,26 @@ function initialize() {
               '<div id="SVPano" style="width: 300px; height: 200px;float:left; z-index:30;">' +
               '</div>' +
 //              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
-              '<p id="imtext">Street View</p>' +
+              '<p id="imtext" style="text-align: center">Street View</p>' +
             '</div>' +
             '<div class="rightbuff" style="float: right;">' +
               '<div id="SAPano" style="width: 300px; height: 200px;float:left; z-index:30;">' +
               '</div>' +
 //              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
-              '<p id="imtext">StreetsAhead</p>' +
+              '<p id="imtext" style="text-align: center">StreetsAhead</p>' +
             '</div>' +
           '</div>';
 
     ib.setContent(contentString);
     ib.open(map, marker);
 
+
+    // Once the infobox html is loaded to DOM, we can modify and render the pano div
     google.maps.event.addListener(ib, "domready", function() {
       var SVPanoOptions = {
         position: place.geometry.location,
         pov: {
-          heading: 165,
+          heading: 0,
           pitch: 0
         },
         zoom: 1,
@@ -131,10 +133,50 @@ function initialize() {
         document.getElementById('SVPano'),
         SVPanoOptions);
 
+      // Get nearest panorama location and heading relative to place
+
+      // This approach uses jQuery call with flask to _get_pano which uses
+      // an unofficial API (xml file) to get Google's guess for the
+      // best pano id. Using getPanoramaByLocation often gives indoor images
+      // which are not desired.
+      var panoGuess = 'def';
+      $.getJSON($SCRIPT_ROOT + '/_get_pano', {
+	"latitude": place.geometry.location.lat(),
+	"longitude": place.geometry.location.lng()
+        }, function(data) {
+	  panoGuess = data.pano_id
+
+          var SVService = new google.maps.StreetViewService();
+//      SVService.getPanoramaByLocation(place.geometry.location, 50, function (panoData, status) {
+          SVService.getPanoramaById(panoGuess, function (panoData, status) {
+            if(status === google.maps.StreetViewStatus.OK){
+              var panoLoc = panoData.location.latLng;
+              var heading = google.maps.geometry.spherical.computeHeading(panoLoc, place.geometry.location);
+//          SVPano.setPosition(panoLoc);
+              SVPano.setPano(panoGuess);
+              SVPano.setPov({
+                heading: heading,
+                pitch: 0
+              });
+
+// for debugging
+//          var headingCell = document.getElementById('heading_cell');
+//          headingCell.firstChild.nodeValue = SVPano.getPov().heading + ''; 
+//          var panoCell = document.getElementById('pano_cell');
+//          panoCell.innerHTML = SVPano.getPano();
+//          panoCell.innerHTML = panoGuess;
+
+            }else{
+              $this.text("Sorry! Street View is not available.");
+              // no street view available in this range, or some error occurred
+            }
+          });
+      });
+
       var SAPanoOptions = {
         position: place.geometry.location,
         pov: {
-          heading: 165,
+          heading: 165, // TO DO! - set heading and location appropriately
           pitch: 0
         },
         zoom: 1,
@@ -148,7 +190,8 @@ function initialize() {
         SAPanoOptions);
 
       SVPano.setVisible(true);
-      SVPano.setVisible(true);
+      SAPano.setVisible(true);
+
     });
   });
 }
