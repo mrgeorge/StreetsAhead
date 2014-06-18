@@ -71,3 +71,47 @@ body {
     margin:auto 0 auto auto;
     background-color:yellow;
 }
+
+.leftbuff {
+    margin-left: 0px;
+/*    background-color:red;*/
+    height: 200px;
+    width: 300px;
+}
+
+.rightbuff {
+    margin-right: 0px;
+/*    background-color:yellow;*/
+    height: 200px;
+    width: 300px;
+}
+
+
+/* Images in popup infowindow with Street View Preview
+   see http://jsfiddle.net/EgLKV/3/  */
+#svdoublewide
+{
+    height:210px;
+    width:610px;
+    position:relative;
+}
+
+#imtext
+{
+    z-index:100;
+    position:relative;
+    color:white;
+    font-size:20px;
+    font-weight:bold;
+    left:5px;
+    top:-225px;
+}
+
+#ibtext
+{
+    z-index:100;
+    position:relative;
+    color:black;
+    font-size:20px;
+    top:-5px;
+}
