@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Place Autocomplete</title>
+    <title>StreetsAhead</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
+
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
     <style>
       html, body, #map-canvas {
         height: 100%;
@@ -59,6 +62,7 @@
     <script src="{{ url_for('static', filename='vendor/jquery/dist/jquery.min.js') }}"></script>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places"></script>
     <script type=text/javascript src="static/js/places.js"></script>
+    <script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobox/src/infobox.js"></script>
 
   </head>
   <body>
