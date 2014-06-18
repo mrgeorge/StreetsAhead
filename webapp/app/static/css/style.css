@@ -116,3 +116,16 @@ body {
     font-size:20px;
     top:-5px;
 }
+
+/* Labels within StreetView */
+   .svlabels {
+     color: red;
+     background-color: white;
+     font-family: "Lucida Grande", "Arial", sans-serif;
+     font-size: 20px;
+     font-weight: bold;
+     text-align: center;
+     width: 300px;
+     border: 2px solid black;
+     white-space: nowrap;
+   }
