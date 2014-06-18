@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+<!--    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}"> -->
 
     <title>StreetsAhead</title>
 
@@ -59,19 +59,6 @@
 //-->
 <div class="title">
     <h1> StreetsAhead </h1>
-</div>
-
-<div style="text-align:center">
-  <form action="" method="post" name="search">
-    {{form.hidden_tag()}}
-    <p>
-      {{form.query(size=40)}}<br>
-      {% for error in form.errors.query %}
-      <span style="color: red;">[{{error}}]</span>
-      {% endfor %}<br>
-    </p>
-    <p><input type="submit" value="Search"></p>
-  </form>
 </div>
 
     <!-- Bootstrap core JavaScript
