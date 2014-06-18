@@ -40,12 +40,12 @@ def getQueryListFromPlace(place):
 
     return queryList
 
-def getLocations(lat0, lng0):
+def getLocations(lat0, lng0, heading=0.):
     """Generate list of (lat, lng) coordinates near initial search position"""
     # TODO - expand search list to neighboring points along road
     lats = [lat0, lat0, lat0]
     lngs = [lng0, lng0, lng0]
-    headings = [0, 45, 315]
+    headings = [heading, (heading+45) % 360, (heading-45) % 360]
     return zip(lats, lngs, headings)
 
 def getImageUrl(lat, lng, heading, size="400x400", fov=50):
