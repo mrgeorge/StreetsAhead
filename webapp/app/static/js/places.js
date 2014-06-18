@@ -91,23 +91,57 @@ function initialize() {
 	"longitude": place.geometry.location.lng()
     });
 
+
     // Define contents of infobox
     var contentString = '<div id="ibtext"><strong>' + place.name + '</strong><br>'+
           address +
           '</div>'+
 	  '<div id="svdoublewide">' +
             '<div class="leftbuff" style="float: left;">' +
-              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
+              '<div id="SVPano" style="width: 300px; height: 200px;float:left; z-index:30;">' +
+              '</div>' +
+//              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
               '<p id="imtext">Street View</p>' +
             '</div>' +
             '<div class="rightbuff" style="float: right;">' +
-              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
+              '<div id="SAPano" style="width: 300px; height: 200px;float:left; z-index:30;">' +
+              '</div>' +
+//              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
               '<p id="imtext">StreetsAhead</p>' +
             '</div>' +
           '</div>';
 
-      ib.setContent(contentString);
-      ib.open(map, marker);
+    ib.setContent(contentString);
+    ib.open(map, marker);
+
+    google.maps.event.addListener(ib, "domready", function() {
+      var SVPanoOptions = {
+        position: place.geometry.location,
+        pov: {
+          heading: 165,
+          pitch: 0
+        },
+        zoom: 1
+      };
+      var SVPano = new google.maps.StreetViewPanorama(
+        document.getElementById('SVPano'),
+        SVPanoOptions);
+
+      var SAPanoOptions = {
+        position: place.geometry.location,
+        pov: {
+          heading: 165,
+          pitch: 0
+        },
+        zoom: 1
+      };
+      var SAPano = new google.maps.StreetViewPanorama(
+        document.getElementById('SAPano'),
+        SAPanoOptions);
+
+      SVPano.setVisible(true);
+      SVPano.setVisible(true);
+    });
   });
 }
 
