@@ -121,7 +121,11 @@ function initialize() {
           heading: 165,
           pitch: 0
         },
-        zoom: 1
+        zoom: 1,
+	panControl: false,
+	zoomControl: false,
+	addressControl: false,
+	linksControl: false
       };
       var SVPano = new google.maps.StreetViewPanorama(
         document.getElementById('SVPano'),
@@ -133,7 +137,11 @@ function initialize() {
           heading: 165,
           pitch: 0
         },
-        zoom: 1
+        zoom: 1,
+	panControl: false,
+	zoomControl: false,
+	addressControl: false,
+	linksControl: false
       };
       var SAPano = new google.maps.StreetViewPanorama(
         document.getElementById('SAPano'),
