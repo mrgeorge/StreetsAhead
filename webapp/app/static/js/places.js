@@ -134,6 +134,10 @@ function initialize() {
       var SVPano = new google.maps.StreetViewPanorama(
         document.getElementById('SVPano'),
         SVPanoOptions);
+      var SAPano = new google.maps.StreetViewPanorama(
+        document.getElementById('SAPano'),
+        SVPanoOptions);
+      var SAMarkerList = []
 
       // Get nearest panorama location and heading relative to place
 
@@ -169,6 +173,39 @@ function initialize() {
 //          panoCell.innerHTML = SVPano.getPano();
 //          panoCell.innerHTML = panoGuess;
 
+
+// pass pano id, lat, lng, heading to flask.
+// get back arrays with pano ids (may include neighbor links), pano lats, pano lngs, headings, texts (all arrays equal length 3 to start)
+// make SAPano
+// iterate over list and make marker for each
+              $.getJSON($SCRIPT_ROOT + '/_pano_to_text', {
+                "panoId": panoGuess,
+                "panoLat": panoLoc.lat(),
+                "panoLng": panoLoc.lng(),
+                "heading": heading
+                }, function(results) {
+                  var len = results.textList.length;
+                  for (var ii = 0; ii < len; ii++) {
+		    var thisPanoPos = new google.maps.LatLng(results.panoLatList[ii], results.panoLngList[ii]);
+                    var thisMarkerPos = google.maps.geometry.spherical.computeOffset(thisPanoPos, 10., results.headingList[ii]);
+		    var thisMarker = new MarkerWithLabel({
+                      position: thisMarkerPos,
+                      clickable: false,
+                      opacity: 0.,
+                      labelVisible: true,
+                      draggable: false,
+                      raiseOnDrag: false,
+                      map: SAPano,
+                      labelContent: results.textList[ii],
+                      labelAnchor: new google.maps.Point(22, 0),
+                      labelClass: "svlabels", // the CSS class for the label
+                      labelStyle: {opacity: 0.5}
+                    });
+
+                    SAMarkerList.push(thisMarker);
+                  }
+              });
+
             }else{
               $this.text("Sorry! Street View is not available.");
               // no street view available in this range, or some error occurred
@@ -176,47 +213,24 @@ function initialize() {
           });
       });
 
-      var SAPanoOptions = {
-        position: place.geometry.location,
-        pov: {
-          heading: 165, // TO DO! - set heading and location appropriately
-          pitch: 0
-        },
-        zoom: 1,
-	panControl: false,
-	zoomControl: false,
-	addressControl: false,
-	linksControl: false
-      };
-      var SAPano = new google.maps.StreetViewPanorama(
-        document.getElementById('SAPano'),
-        SAPanoOptions);
-
-      var marker1 = new MarkerWithLabel({
-        position: SAPano.getPosition(),
-	clickable: false,
-	opacity: 0.,
-	labelVisible: true,
-        draggable: false,
-        raiseOnDrag: false,
-        map: SAPano,
-        labelContent: "test marker label",
-        labelAnchor: new google.maps.Point(22, 0),
-        labelClass: "svlabels", // the CSS class for the label
-        labelStyle: {opacity: 0.5}
-      });
-
+/*      var len = SAMarkerList.length;
+      for (var jj = 0; jj < len; jj++) {
+        SAMarkerList[jj].setMap(SAPano);
+      }
+*/
       SVPano.setVisible(true);
       SAPano.setVisible(true);
+
+
 
       // Text label doesn't render well after moving from initial point
       // hide it when current pano ID differs from original
       google.maps.event.addListener(SAPano, 'pano_changed', function() {
         if (SAPano.getPano() == SAPanoStart) {
-          marker1.setVisible(true);
+//          marker1.setVisible(true);
 //          marker1.set("labelContent", SAPanoStart + SAPano.getPano());
         } else {
-          marker1.setVisible(false);
+//          marker1.setVisible(false);
 //          marker1.set("labelContent", "moved" + SAPanoStart + SAPano.getPano());
         }
       });
