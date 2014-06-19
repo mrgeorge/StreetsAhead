@@ -32,6 +32,8 @@ def camfindGet(token, maxTries=10, sleep=1):
             nTries += 1
             time.sleep(sleep)
 
+    return None
+
 def wordMatch(imgStr, queryPlaceName):
     """Return score of how well image text matches search query
 
