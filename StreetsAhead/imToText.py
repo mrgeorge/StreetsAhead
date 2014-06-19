@@ -1,6 +1,7 @@
 import time
 
 import unirest
+from fuzzywuzzy import fuzz, process
 
 CAMFIND_KEY_FILE = "/Users/mgeorge/insight/StreetsAhead/StreetsAhead/keys/camfind.key" # file with CamFind API Key on first line
 with open(CAMFIND_KEY_FILE, 'r') as ff:
@@ -31,3 +32,20 @@ def camfindGet(token, maxTries=10, sleep=1):
             nTries += 1
             time.sleep(sleep)
 
+def wordMatch(imgStr, queryPlaceName):
+    """Return score of how well image text matches search query
+
+    Input:
+        imgStr - string of text describing image
+            (e.g. "udupi palace storefront")
+        queryPlaceName - string with Google Places name
+            (e.g. "Udupi Palace")
+
+    Returns:
+        wordScore - best partial ratio
+    """
+
+    # WRatio uses weighted partial-string matching
+    # default forces to lower case alphanumeric chars
+    # high score (max 100) means good match
+    return fuzz.WRatio(imgStr, queryPlaceName)
