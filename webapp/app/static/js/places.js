@@ -29,7 +29,6 @@ function initialize() {
                 pixelOffset: new google.maps.Size(-310, 30),//X axis should be half the size of box width
                 zIndex: null,
                 boxStyle: {
-//                  background: "url('tipbox.gif') no-repeat",
                   background: "white",
                   opacity: 1.,
                   width: "610px",
@@ -38,7 +37,6 @@ function initialize() {
 		  border: "1px solid black"
                  },
                 closeBoxMargin: "2px 2px 2px 2px",
-//                closeBoxURL: "http://www.google.com/intl/en_us/mapfiles/close.gif",
                 closeBoxURL: "",
                 infoBoxClearance: new google.maps.Size(10, 10),
                 isHidden: false,
@@ -102,13 +100,11 @@ function initialize() {
             '<div class="leftbuff" style="float: left;">' +
               '<div id="SVPano" style="width: 300px; height: 200px;float:left; z-index:30;">' +
               '</div>' +
-//              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
               '<p id="imtext" style="text-align: center">Street View</p>' +
             '</div>' +
             '<div class="rightbuff" style="float: right;">' +
               '<div id="SAPano" style="width: 300px; height: 200px;float:left; z-index:30;">' +
               '</div>' +
-//              '<img src = "http://maps.googleapis.com/maps/api/streetview?location=37.86713,-122.258677&heading=0&fov=50&size=300x200"/>' +
               '<p id="imtext" style="text-align: center">StreetsAhead</p>' +
             '</div>' +
           '</div>';
@@ -154,12 +150,10 @@ function initialize() {
           SAPanoStart = panoGuess;
 
           var SVService = new google.maps.StreetViewService();
-//      SVService.getPanoramaByLocation(place.geometry.location, 50, function (panoData, status) {
           SVService.getPanoramaById(panoGuess, function (panoData, status) {
             if(status === google.maps.StreetViewStatus.OK){
               var panoLoc = panoData.location.latLng;
               var heading = google.maps.geometry.spherical.computeHeading(panoLoc, place.geometry.location);
-//          SVPano.setPosition(panoLoc);
               SVPano.setPano(panoGuess);
               SVPano.setPov({
                 heading: heading,
@@ -173,43 +167,46 @@ function initialize() {
                 pitch: 0
               });
 
-// for debugging
-//          var headingCell = document.getElementById('heading_cell');
-//          headingCell.firstChild.nodeValue = SVPano.getPov().heading + ''; 
-//          var panoCell = document.getElementById('pano_cell');
-//          panoCell.innerHTML = SVPano.getPano();
-//          panoCell.innerHTML = panoGuess;
-
-
-// pass pano id, lat, lng, heading to flask.
-// get back arrays with pano ids (may include neighbor links), pano lats, pano lngs, headings, texts (all arrays equal length 3 to start)
-// make SAPano
-// iterate over list and make marker for each
+              // pass pano id, lat, lng, heading to flask.
+              // get back arrays with pano ids (may include neighbor links),
+              //      pano lats, pano lngs, headings, texts
+              // make SAPano
+              // iterate over list and make marker for each
               $.getJSON($SCRIPT_ROOT + '/_pano_to_text', {
                 "panoId": panoGuess,
                 "panoLat": panoLoc.lat(),
                 "panoLng": panoLoc.lng(),
-                "heading": heading
+                "heading": heading,
+                "placeName": place.name
                 }, function(results) {
+
+                  // update SA position and heading
+                  SAPano.setPano(results.bestPanoId);
+                  SAPano.setPov({
+                    heading: results.bestHeading,
+                    pitch: 0
+                  });
+
                   var len = results.textList.length;
                   for (var ii = 0; ii < len; ii++) {
-		    var thisPanoPos = new google.maps.LatLng(results.panoLatList[ii], results.panoLngList[ii]);
-                    var thisMarkerPos = google.maps.geometry.spherical.computeOffset(thisPanoPos, 10., results.headingList[ii]);
-		    var thisMarker = new MarkerWithLabel({
-                      position: thisMarkerPos,
-                      clickable: false,
-                      opacity: 0.,
-                      labelVisible: true,
-                      draggable: false,
-                      raiseOnDrag: false,
-                      map: SAPano,
-                      labelContent: results.textList[ii],
-                      labelAnchor: new google.maps.Point(22, 0),
-                      labelClass: "svlabels", // the CSS class for the label
-                      labelStyle: {opacity: 0.5}
-                    });
-
-                    SAMarkerList.push(thisMarker);
+                    if (results.panoIdList[ii] == results.bestPanoId && results.textList[ii] != "NULL") {
+                      var thisPanoPos = new google.maps.LatLng(results.panoLatList[ii], results.panoLngList[ii]);
+                      var thisMarkerPos = google.maps.geometry.spherical.computeOffset(thisPanoPos, 20., results.headingList[ii]);
+                      var thisMarker = new MarkerWithLabel({
+                        position: thisMarkerPos,
+                        clickable: false,
+                        opacity: 0.,
+                        labelVisible: true,
+                        draggable: false,
+                        raiseOnDrag: false,
+                        map: SAPano,
+                        labelContent: results.textList[ii],
+                        labelAnchor: new google.maps.Point(22, 0),
+                        labelClass: "svlabels", // the CSS class for the label
+                        labelStyle: {opacity: 0.5}
+                      });
+                      SAMarkerList.push({"marker": thisMarker, "panoId": results.panoIdList[ii]});
+                    }
                   }
               });
 
@@ -220,27 +217,31 @@ function initialize() {
           });
       });
 
-/*      var len = SAMarkerList.length;
-      for (var jj = 0; jj < len; jj++) {
-        SAMarkerList[jj].setMap(SAPano);
-      }
-*/
       SVPano.setVisible(true);
       SAPano.setVisible(true);
 
 
+//TO DO - hide labels when pano is not where they belong
 
-      // Text label doesn't render well after moving from initial point
+/*      // Text label doesn't render well after moving from initial point
       // hide it when current pano ID differs from original
       google.maps.event.addListener(SAPano, 'pano_changed', function() {
-        if (SAPano.getPano() == SAPanoStart) {
+        var nMarkers = SAMarkerList.length;
+        var currPano = SAPano.getPano();
+        for (var ii=0; ii < nMarkers; ii++) {
+          if (SAMarkerList[ii].panoId = currPano) {
+            SAMarkerList[ii].marker.setVisible(true);
+          } else {
+            SAMarkerList[ii].marker.setVisible(false);
+          }
+//        if (SAPano.getPano() == SAPanoStart) {
 //          marker1.setVisible(true);
 //          marker1.set("labelContent", SAPanoStart + SAPano.getPano());
-        } else {
+//        } else {
 //          marker1.setVisible(false);
 //          marker1.set("labelContent", "moved" + SAPanoStart + SAPano.getPano());
         }
-      });
+      }); */
     });
   });
 }
