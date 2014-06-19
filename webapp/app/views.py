@@ -68,7 +68,7 @@ def index():
     if form.validate_on_submit():
         images = locsToImages(queryToLocs(form))
         return render_template('results.html', images=images, form=form)
-    return render_template('search.html', title='Search string', form=form)
+    return render_template('search.html', form=form)
 
 @app.route('/slides')
 def about():
@@ -145,4 +145,17 @@ def pano_to_text():
     locs = ingest.getLocations(panoLat, panoLng, heading=heading)
     images = locsToImages(locs)
 
-#    return jsonify([])
+    nLocs = len(locs)
+    panoIdList = [panoId for ii in range(nLocs)]
+    panoLatList = [loc[0] for loc in locs]
+    panoLngList = [loc[1] for loc in locs]
+    headingList = [loc[2] for loc in locs]
+    textList = [img.text for img in images]
+
+    print textList
+
+    return jsonify({"panoIdList": panoIdList,
+                    "panoLatList": panoLatList,
+                    "panoLngList": panoLngList,
+                    "headingList": headingList,
+                    "textList": textList})
