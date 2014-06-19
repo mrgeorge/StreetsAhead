@@ -166,6 +166,13 @@ function initialize() {
                 pitch: 0
               });
 
+              // use same pos/pov for SA initially
+              SAPano.setPano(panoGuess);
+              SAPano.setPov({
+                heading: heading,
+                pitch: 0
+              });
+
 // for debugging
 //          var headingCell = document.getElementById('heading_cell');
 //          headingCell.firstChild.nodeValue = SVPano.getPov().heading + ''; 
