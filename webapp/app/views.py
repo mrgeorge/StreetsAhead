@@ -137,10 +137,13 @@ def get_pano():
 @app.route('/_pano_to_text')
 def pano_to_text():
 
-    panoId = request.args.get('panoId', 0.)
+    panoId = request.args.get('panoId', 'NULL')
     panoLat = float(request.args.get('panoLat', 0.))
     panoLng = float(request.args.get('panoLng', 0.))
     heading = float(request.args.get('heading', 0.))
+    placeName = request.args.get('placeName', 'NULL')
+
+    print panoId, placeName
 
     locs = ingest.getLocations(panoLat, panoLng, heading=heading)
     images = locsToImages(locs)
@@ -152,10 +155,26 @@ def pano_to_text():
     headingList = [loc[2] for loc in locs]
     textList = [img.text for img in images]
 
-    print textList
+    # Get panoId and heading for best matching text
+    # if no match scores better than scoreLimit, use default pointing
+    bestScore = -1
+    scoreLimit = 40
+    bestHeading = heading
+    bestPanoId = panoId
+    for thisText, thisHeading, thisPanoId in zip(textList, headingList,
+                                                 panoIdList):
+        score = imToText.wordMatch(thisText, placeName)
+        if score > bestScore and score > scoreLimit:
+            bestHeading = thisHeading
+            bestPanoId = thisPanoId
+        print score
+
+    print panoId, textList
 
     return jsonify({"panoIdList": panoIdList,
                     "panoLatList": panoLatList,
                     "panoLngList": panoLngList,
                     "headingList": headingList,
-                    "textList": textList})
+                    "textList": textList,
+                    "bestPanoId": bestPanoId,
+                    "bestHeading": bestHeading})
