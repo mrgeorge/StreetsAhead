@@ -98,8 +98,9 @@ body {
 
 #svcontainer
 {
-    height:300px;
-    width:400px;
+    display:table;
+    height:100%;
+    width:100%;
     position:relative;
 }
 
@@ -117,7 +118,10 @@ body {
 
 #ibtext
 {
+    display:table-row;
     z-index:100;
+    height:50px;
+    width:100%;
     position:relative;
     color:black;
     font-size:20px;
@@ -125,7 +129,7 @@ body {
 }
 
 /* Labels within StreetView */
-   .svlabels {
+.svlabels {
      color: red;
      background-color: white;
      font-family: "Lucida Grande", "Arial", sans-serif;
@@ -137,7 +141,7 @@ body {
      white-space: nowrap;
    }
 
-#SAInfoBox
+.SAInfoBox
 {
     background: white;
     opacity: 1.;
@@ -155,9 +159,28 @@ body {
     visibility: hidden;
 }
 
+#SAPano
+{
+  display: table-row;
+  width: 100%;
+  height: 100%;
+  float:left;
+  z-index:30;
+}
+
 .container
 {
     width: 100%;
     height: 100%;
     position: relative
+}
+
+
+/* For enlarging SAInfoBox on click */
+.enlarged{
+    height: 80%;
+    width: 80%;
+}
+.hide{
+    top-margin: auto;
 }

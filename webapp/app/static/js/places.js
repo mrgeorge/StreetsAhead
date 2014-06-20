@@ -30,9 +30,12 @@ function initialize() {
       return;
     }
 
-  var boxText = document.createElement("div");
-  boxText.innerHTML = "";
-  var myOptions = {
+    // if prev SA instance is enlarged, shrink it
+    $( ".SAInfoBox" ).removeClass("enlarged");
+
+    var boxText = document.createElement("div");
+    boxText.innerHTML = "";
+    var myOptions = {
                 content: boxText,
                 disableAutoPan: false,
                 maxWidth: 0,
@@ -92,12 +95,12 @@ function initialize() {
     });
 
     // Define contents of infobox
-    var contentString = '<div id="ibtext"><strong>' + place.name + '</strong><br>'+
-          address +
-          '</div>'+
-          '<div id="svcontainer">' +
-              '<div id="SAPano" style="width: 380px; height: 250px;float:left; z-index:30;">' +
-              '</div>' +
+    var contentString = '<div id="svcontainer">' +
+            '<div id="ibtext"><strong>' + place.name + '</strong><br>'+
+            address +
+            '</div>'+
+            '<div id="SAPano">' +
+            '</div>' +
           '</div>';
 
     ib.setContent(contentString);
@@ -105,10 +108,13 @@ function initialize() {
 
     // Once the infobox html is loaded to DOM, we can modify and render the pano div
     google.maps.event.addListener(ib, "domready", function() {
-      $( "#SAInfoBox" ).html($( ".infoBox" ).html());
-      $( "#SAInfoBox" ).css("visibility", "visible");
-      $( "#SAInfoBox" ).css("display", "block");
+
+      // Export infoBox (inside map-canvas) to SAInfoBox (outside at fixed position)
+      $( ".SAInfoBox" ).html($( ".infoBox" ).html());
+      $( ".SAInfoBox" ).css("visibility", "visible");
+      $( ".SAInfoBox" ).css("display", "block");
       $( ".infoBox" ).remove();
+
       var panoOptions = {
         position: place.geometry.location,
         pov: {
