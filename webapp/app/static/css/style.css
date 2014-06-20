@@ -130,15 +130,16 @@ body {
 
 /* Labels within StreetView */
 .svlabels {
-     color: red;
+     color: gray;
      background-color: white;
      font-family: "Lucida Grande", "Arial", sans-serif;
-     font-size: 20px;
+     font-size: 16px;
      font-weight: bold;
      text-align: center;
-     width: 100px;
-     border: 2px solid black;
+     width: 200px;
+     border: 1px solid white;
      white-space: nowrap;
+     overflow: visible;
    }
 
 .SAInfoBox
