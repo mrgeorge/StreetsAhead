@@ -11,7 +11,8 @@
       html, body, #map-canvas {
         height: 100%;
         margin: 0px;
-        padding: 0px
+        padding: 0px;
+        float: top;
       }
       .controls {
         margin-top: 16px;
@@ -67,35 +68,11 @@
 
   </head>
   <body>
-    <input id="pac-input" class="controls" type="text"
-        placeholder="Enter a location">
-    <div id="map-canvas"></div>
-<!--   <div id="map-canvas" style="width: 45%; height: 80%;float:left"></div> -->
-<!--    <div id="pano" style="width: 45%; height:
-  80%;float:left"></div> -->
-
-
-<!-- table to help debug SV pano info
-
- <div id="pano" style="width: 45%; height: 100%;float:left"></div>
-    <div id="panoInfo" style="width: 45%; height: 100%;float:left">
-    <table>
-      <tr>
-        <td><b>Position</b></td><td id="position_cell">foo</td>
-      </tr>
-      <tr>
-        <td><b>POV Heading</b></td><td id="heading_cell">3.14</td>
-      </tr>
-      <tr>
-        <td><b>POV Pitch</b></td><td id="pitch_cell">0.0</td>
-      </tr>
-      <tr>
-        <td><b>Pano ID</b></td><td id="pano_cell">bar</td>
-      </tr>
-      <table id="links_table"></table>
-    </table>
+    <div class="container">
+      <input id="pac-input" class="controls" type="text"
+          placeholder="Enter a location">
+      <div id="SAInfoBox"></div>
+      <div id="map-canvas"></div>
     </div>
--->
-
   </body>
 </html>
