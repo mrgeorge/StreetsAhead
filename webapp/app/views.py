@@ -30,7 +30,6 @@ def queryToLocs(form):
     inputQuery = form.query.data
     keywordStr, locStr = inputQuery.split(',')
     place = ingest.getPlaceFromQuery(keywordStr, locStr)
-#    queryList = ingest.getQueryListFromPlace(place)
 
     locs = ingest.getLocations(place.geo_location['lat'],
                                    place.geo_location['lng'])
@@ -52,9 +51,6 @@ def locsToImages(locs):
             image.text = text
         else:
             image.text = "NULL"
-
-#    cur.execute('INSERT INTO query (text) VALUES (%s);', (inputQuery,))
-#    db.commit()
 
     return images
 
@@ -130,8 +126,12 @@ def get_pano():
     ff.close()
 
     bs = BeautifulStoneSoup(xml)
-    dp = bs.findAll("data_properties")[0]
-    pano_id = [attr[1] for attr in dp.attrs if attr[0]=='pano_id'][0]
+    allDP = bs.findAll("data_properties")
+    if len(allDP) > 0:
+        dp = allDP[0]
+        pano_id = [attr[1] for attr in dp.attrs if attr[0]=='pano_id'][0]
+    else:
+        pano_id = "NULL"
 
     return jsonify(pano_id=pano_id)
 
@@ -146,8 +146,10 @@ def pano_to_text():
 
     print panoId, placeName
 
-    locs = ingest.getLocations(panoLat, panoLng, heading=heading)
-    images = locsToImages(locs)
+#    locs = ingest.getLocations(panoLat, panoLng, heading=heading)
+#    images = locsToImages(locs)
+    locs = []
+    images = []
 
     panoIdList = [panoId for loc in locs]
     panoLatList = [loc[0] for loc in locs]
