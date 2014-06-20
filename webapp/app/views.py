@@ -42,7 +42,8 @@ def locsToImages(locs):
         lat, lng, heading = loc
         url = ingest.getImageUrl(lat, lng, heading)
         token = imToText.camfindPost(url)
-        images.append(Image(url, token, None))
+        if token is not None:
+            images.append(Image(url, token, None))
 
     descriptions = ""
     for image in images:
@@ -148,8 +149,7 @@ def pano_to_text():
     locs = ingest.getLocations(panoLat, panoLng, heading=heading)
     images = locsToImages(locs)
 
-    nLocs = len(locs)
-    panoIdList = [panoId for ii in range(nLocs)]
+    panoIdList = [panoId for loc in locs]
     panoLatList = [loc[0] for loc in locs]
     panoLngList = [loc[1] for loc in locs]
     headingList = [loc[2] for loc in locs]
