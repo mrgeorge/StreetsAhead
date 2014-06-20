@@ -7,18 +7,24 @@ CAMFIND_KEY_FILE = "/Users/mgeorge/insight/StreetsAhead/StreetsAhead/keys/camfin
 with open(CAMFIND_KEY_FILE, 'r') as ff:
     CAMFIND_KEY = ff.readline().replace('\n', '')
 
-def camfindPost(imgurl):
-    post = unirest.post("https://camfind.p.mashape.com/image_requests",
-        headers={"X-Mashape-Authorization": CAMFIND_KEY},
-        params={ 
-            "image_request[locale]": "en_US",
-            "image_request[remote_image_url]": imgurl
-        }
-    )
+def camfindPost(imgurl, maxTries=3, sleep=1):
+    nTries = 0
+    while nTries < maxTries:
+        post = unirest.post("https://camfind.p.mashape.com/image_requests",
+            headers={"X-Mashape-Authorization": CAMFIND_KEY},
+            params={ 
+                "image_request[locale]": "en_US",
+                "image_request[remote_image_url]": imgurl
+            })
+        try:
+            token = post.body['token']
+            return token
+        except KeyError:
+            nTries += 1
+            time.sleep(sleep)
 
-    token = post.body['token']
-
-    return token
+    print "Warning: camfindPost failed", imgurl
+    return None
 
 def camfindGet(token, maxTries=10, sleep=1):
     nTries = 0
@@ -32,6 +38,7 @@ def camfindGet(token, maxTries=10, sleep=1):
             nTries += 1
             time.sleep(sleep)
 
+    print "Warning: camfindGet failed", token
     return None
 
 def wordMatch(imgStr, queryPlaceName):
