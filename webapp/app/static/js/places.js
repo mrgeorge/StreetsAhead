@@ -31,7 +31,6 @@ function initialize() {
     }
 
   var boxText = document.createElement("div");
-  boxText.style.cssText = "border: 1px solid black; margin-top: 1px; background: white; padding: 10px;";
   boxText.innerHTML = "";
   var myOptions = {
                 content: boxText,
@@ -42,11 +41,12 @@ function initialize() {
                 boxStyle: {
                   background: "white",
                   opacity: 1.,
-                  width: "610px",
+                  width: "380px",
                   height: "250px",
-		  padding: "10px",
-		  border: "1px solid black"
-                 },
+                  padding: "10px",
+                  border: "0px solid black",
+                  "box-shadow": "0 2px 6px rgba(0, 0, 0, 0.3)",
+                },
                 closeBoxMargin: "2px 2px 2px 2px",
                 closeBoxURL: "",
                 infoBoxClearance: new google.maps.Size(10, 10),
@@ -55,7 +55,6 @@ function initialize() {
                 enableEventPropagation: false
         };
 
-    $( ".infoBox" ).remove();
     var ib = new InfoBox(myOptions);
 
     // If the place has a geometry, then present it on a map.
@@ -63,7 +62,7 @@ function initialize() {
       map.fitBounds(place.geometry.viewport);
     } else {
       map.setCenter(place.geometry.location);
-      map.setZoom(17);  // Why 17? Because it looks good.
+      map.setZoom(17);
     }
     marker.setIcon(/** @type {google.maps.Icon} */({
       url: place.icon,
@@ -96,26 +95,21 @@ function initialize() {
     var contentString = '<div id="ibtext"><strong>' + place.name + '</strong><br>'+
           address +
           '</div>'+
-	  '<div id="svdoublewide">' +
-            '<div class="leftbuff" style="float: left;">' +
-              '<div id="SVPano" style="width: 300px; height: 200px;float:left; z-index:30;">' +
+          '<div id="svcontainer">' +
+              '<div id="SAPano" style="width: 380px; height: 250px;float:left; z-index:30;">' +
               '</div>' +
-              '<p id="imtext" style="text-align: center">Street View</p>' +
-            '</div>' +
-            '<div class="rightbuff" style="float: right;">' +
-              '<div id="SAPano" style="width: 300px; height: 200px;float:left; z-index:30;">' +
-              '</div>' +
-              '<p id="imtext" style="text-align: center">StreetsAhead</p>' +
-            '</div>' +
           '</div>';
 
     ib.setContent(contentString);
     ib.open(map, marker);
 
-
     // Once the infobox html is loaded to DOM, we can modify and render the pano div
     google.maps.event.addListener(ib, "domready", function() {
-      var SVPanoOptions = {
+      $( "#SAInfoBox" ).html($( ".infoBox" ).html());
+      $( "#SAInfoBox" ).css("visibility", "visible");
+      $( "#SAInfoBox" ).css("display", "block");
+      $( ".infoBox" ).remove();
+      var panoOptions = {
         position: place.geometry.location,
         pov: {
           heading: 0,
@@ -127,12 +121,9 @@ function initialize() {
 	addressControl: false,
 	linksControl: false
       };
-      var SVPano = new google.maps.StreetViewPanorama(
-        document.getElementById('SVPano'),
-        SVPanoOptions);
       var SAPano = new google.maps.StreetViewPanorama(
         document.getElementById('SAPano'),
-        SVPanoOptions);
+        panoOptions);
       var SAMarkerList = []
 
       // Get nearest panorama location and heading relative to place
@@ -153,11 +144,6 @@ function initialize() {
             if(status === google.maps.StreetViewStatus.OK){
               var panoLoc = panoData.location.latLng;
               var heading = google.maps.geometry.spherical.computeHeading(panoLoc, place.geometry.location);
-              SVPano.setPano(panoGuess);
-              SVPano.setPov({
-                heading: heading,
-                pitch: 0
-              });
 
               // use same pos/pov for SA initially
               SAPano.setPano(panoGuess);
@@ -216,7 +202,6 @@ function initialize() {
           });
       });
 
-      SVPano.setVisible(true);
       SAPano.setVisible(true);
 
 
