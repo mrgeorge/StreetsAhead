@@ -55,7 +55,11 @@ def locsToImages(locs):
     return images
 
 # ROUTING/VIEW FUNCTIONS
-@app.route('/', methods = ['GET', 'POST'])
+@app.route('/')
+def landing():
+    return render_template('landing.html')
+
+#@app.route('/', methods = ['GET', 'POST'])
 @app.route('/index', methods = ['GET', 'POST'])
 @app.route('/search', methods = ['GET', 'POST'])
 @app.route('/results', methods = ['GET', 'POST'])
@@ -146,16 +150,27 @@ def pano_to_text():
 
     print panoId, placeName
 
-#    locs = ingest.getLocations(panoLat, panoLng, heading=heading)
+    locs = ingest.getLocations(panoLat, panoLng, heading=heading)
 #    images = locsToImages(locs)
-    locs = []
-    images = []
+#    locs = []
+#    images = []
 
     panoIdList = [panoId for loc in locs]
     panoLatList = [loc[0] for loc in locs]
     panoLngList = [loc[1] for loc in locs]
     headingList = [loc[2] for loc in locs]
-    textList = [img.text for img in images]
+#    textList = [img.text for img in images]
+
+    print panoId, headingList
+
+    textList = [getCacheText(panoId, loc[2]) for loc in locs]
+    for ii, text in enumerate(textList):
+        if text is None:
+            img = locsToImages([locs[ii]])
+            if len(img) > 0:
+                textList[ii] = img[0].text
+            else:
+                textList[ii] = "NULL"
 
     # Get panoId and heading for best matching text
     # if no match scores better than scoreLimit, use default pointing
@@ -171,7 +186,6 @@ def pano_to_text():
             bestPanoId = thisPanoId
         print score
 
-    print panoId, textList
 
     return jsonify({"panoIdList": panoIdList,
                     "panoLatList": panoLatList,
@@ -180,3 +194,14 @@ def pano_to_text():
                     "textList": textList,
                     "bestPanoId": bestPanoId,
                     "bestHeading": bestHeading})
+
+def getCacheText(panoId, heading):
+    cur.execute("""SELECT text FROM imtext
+                   WHERE panoId = %s
+                   AND heading BETWEEN %s AND %s""",
+                   (panoId, heading-10, heading+10))
+    try:
+        text = cur.fetchone()[0]
+        return text
+    except TypeError:
+        return None
