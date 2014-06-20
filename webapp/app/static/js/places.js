@@ -1,5 +1,3 @@
-var SAPanoStart = "null"; // keep track of initial SA position to toggle text labels
-
 function initialize() {
   var mapOptions = {
     center: new google.maps.LatLng(37.8717, -122.2728),
@@ -18,6 +16,19 @@ function initialize() {
 
   var autocomplete = new google.maps.places.Autocomplete(input);
   autocomplete.bindTo('bounds', map);
+
+
+  var marker = new google.maps.Marker({
+    map: map,
+    anchorPoint: new google.maps.Point(0, -29)
+  });
+
+  google.maps.event.addListener(autocomplete, 'place_changed', function() {
+    marker.setVisible(false);
+    var place = autocomplete.getPlace();
+    if (!place.geometry) {
+      return;
+    }
 
   var boxText = document.createElement("div");
   boxText.style.cssText = "border: 1px solid black; margin-top: 1px; background: white; padding: 10px;";
@@ -44,19 +55,8 @@ function initialize() {
                 enableEventPropagation: false
         };
 
-  var ib = new InfoBox(myOptions);
-
-  var marker = new google.maps.Marker({
-    map: map,
-    anchorPoint: new google.maps.Point(0, -29)
-  });
-
-  google.maps.event.addListener(autocomplete, 'place_changed', function() {
-    marker.setVisible(false);
-    var place = autocomplete.getPlace();
-    if (!place.geometry) {
-      return;
-    }
+    $( ".infoBox" ).remove();
+    var ib = new InfoBox(myOptions);
 
     // If the place has a geometry, then present it on a map.
     if (place.geometry.viewport) {
@@ -147,7 +147,6 @@ function initialize() {
 	"longitude": place.geometry.location.lng()
         }, function(data) {
 	  panoGuess = data.pano_id;
-          SAPanoStart = panoGuess;
 
           var SVService = new google.maps.StreetViewService();
           SVService.getPanoramaById(panoGuess, function (panoData, status) {
@@ -234,13 +233,6 @@ function initialize() {
           } else {
             SAMarkerList[ii].marker.setVisible(false);
           }
-//        if (SAPano.getPano() == SAPanoStart) {
-//          marker1.setVisible(true);
-//          marker1.set("labelContent", SAPanoStart + SAPano.getPano());
-//        } else {
-//          marker1.setVisible(false);
-//          marker1.set("labelContent", "moved" + SAPanoStart + SAPano.getPano());
-        }
       }); */
     });
   });
