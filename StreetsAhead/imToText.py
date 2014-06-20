@@ -1,4 +1,5 @@
 import time
+from ssl import SSLError
 
 import unirest
 from fuzzywuzzy import fuzz, process
@@ -19,7 +20,7 @@ def camfindPost(imgurl, maxTries=3, sleep=1):
         try:
             token = post.body['token']
             return token
-        except KeyError:
+        except KeyError, SSLError:
             nTries += 1
             time.sleep(sleep)
 
@@ -34,7 +35,7 @@ def camfindGet(token, maxTries=10, sleep=1):
             )
         try:
             return get.body['name']
-        except KeyError:
+        except KeyError, SSLError:
             nTries += 1
             time.sleep(sleep)
 
