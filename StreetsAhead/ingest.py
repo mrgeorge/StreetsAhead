@@ -3,7 +3,6 @@ import urllib
 
 import numpy as np
 import googleplaces
-import cv2
 
 API_KEY_FILE = "/Users/mgeorge/insight/StreetsAhead/StreetsAhead/keys/google.key" # file with Google Maps API Key on first line
 with open(API_KEY_FILE, 'r') as ff:
