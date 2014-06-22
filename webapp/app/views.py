@@ -8,17 +8,21 @@ from BeautifulSoup import BeautifulStoneSoup
 
 import pymysql
 
-db = pymysql.connect(user="flask", host="localhost", port=3306, db="StreetsAhead")
-cur = db.cursor()
-
 try:
     from StreetsAhead import ingest, imToText
+    from StreetsAhead.camfind import *
 except ImportError: # add parent dir to python search path
     import os, sys
     path, filename = os.path.split(__file__)
     sys.path.append(os.path.abspath(os.path.join(path,"../../../StreetsAhead")))
     from StreetsAhead import ingest, imToText
+    from StreetsAhead.camfind import *
 
+with open(MYSQL_KEY_FILE, 'r') as ff:
+    username, password = ff.readline().split()
+db = pymysql.connect(user=username, passwd=password, host="localhost",
+                     port=3306, db="StreetsAhead")
+cur = db.cursor()
 
 class Image(object):
     def __init__(self, url, token, text):
