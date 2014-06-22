@@ -6,3 +6,4 @@ caffe_*_iter_*
 webapps/venv/
 webapps/app/static/vendor
 webapps/node_modules
+/sqldumps
