@@ -171,3 +171,12 @@ body {
     width: 80%;
     position: absolute;
 }
+.close_box{
+    position:absolute;
+    right:10px;
+    top:0px;
+    z-index:1000;
+    font-size:30px;
+    visibility:hidden;
+    cursor:pointer;
+}

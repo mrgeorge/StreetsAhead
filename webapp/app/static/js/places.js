@@ -111,6 +111,7 @@ function initialize() {
 
       // Export infoBox (inside map-canvas) to SAInfoBox (outside at fixed position)
       $( ".SAInfoBox" ).html($( ".infoBox" ).html());
+      $( ".SAInfoBox" ).prepend("<div class='close_box'>×</div>");
       $( ".SAInfoBox" ).css("visibility", "visible");
       $( ".SAInfoBox" ).css("display", "block");
       $( ".infoBox" ).remove();
@@ -122,8 +123,8 @@ function initialize() {
           pitch: 0
         },
         zoom: 1,
-	panControl: false,
-	zoomControl: false,
+	panControl: true,
+	zoomControl: true,
 	addressControl: false,
 	linksControl: false
       };
@@ -209,6 +210,12 @@ function initialize() {
       });
 
       SAPano.setVisible(true);
+
+      google.maps.event.addDomListener( window, "click", function() {
+        console.log("google event triggered");
+        google.maps.event.trigger(SAPano, "resize");
+      });
+
 
 
 //TO DO - hide labels when pano is not where they belong

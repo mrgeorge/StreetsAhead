@@ -75,12 +75,23 @@
       <div id="map-canvas"></div>
     </div>
 
-
     <!-- Enlarge SA view on click -->
     <script type="text/javascript" charset="utf-8">
       $(document).ready(function(){
-        $( ".SAInfoBox" ).click(function() {
-          $(this).addClass("enlarged");
+        $( ".SAInfoBox" ).click(function(e) {
+          if($(e.target).is(".close_box")) {
+            console.log("shrinking infobox");
+            $( ".SAInfoBox" ).removeClass("enlarged");
+            $( ".SAInfoBox" ).trigger("onresize");
+            $( ".close_box" ).css("visibility", "hidden");
+          } else if(($(e.target).is(".SAInfoBox")) || ($(e.target).is("#svcontainer"))) {
+            console.log("enlarging infobox");
+            $( ".SAInfoBox" ).addClass("enlarged");
+            $( ".SAInfoBox" ).trigger("submit");
+            $( ".close_box" ).css("visibility", "visible");
+          } else {
+            console.log("ignoring click within pano");
+         }
         });
       });
     </script>
