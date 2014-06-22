@@ -104,18 +104,6 @@ body {
     position:relative;
 }
 
-#imtext
-{
-    z-index:100;
-    position:relative;
-    color:white;
-    font-size:20px;
-    font-weight:bold;
-    height:20px;
-    width:300px;
-    top:-195px;
-}
-
 #ibtext
 {
     display:table-row;
@@ -134,12 +122,12 @@ body {
      background-color: white;
      font-family: "Lucida Grande", "Arial", sans-serif;
      font-size: 16px;
-     font-weight: bold;
      text-align: center;
-     width: 200px;
+     width: 125px;
      border: 1px solid white;
-     white-space: nowrap;
-     overflow: visible;
+     border-radius: 10px;
+     -webkit-border-radius: 10px;
+     -moz-border-radius: 10px;
    }
 
 .SAInfoBox
