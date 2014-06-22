@@ -4,10 +4,10 @@ import urllib
 import numpy as np
 import googleplaces
 
-API_KEY_FILE = "/Users/mgeorge/insight/StreetsAhead/StreetsAhead/keys/google.key" # file with Google Maps API Key on first line
-with open(API_KEY_FILE, 'r') as ff:
-    API_KEY = ff.readline().replace('\n', '')
-gp = googleplaces.GooglePlaces(API_KEY)
+from StreetsAhead.config import *
+with open(GOOGLE_KEY_FILE, 'r') as ff:
+    GOOGLE_KEY = ff.readline().replace('\n', '')
+gp = googleplaces.GooglePlaces(GOOGLE_KEY)
 
 #inputKeywordStr = "Zachary's"
 inputKeywordStr = "CREAM"

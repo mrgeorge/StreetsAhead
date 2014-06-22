@@ -4,7 +4,8 @@ from ssl import SSLError
 import unirest
 from fuzzywuzzy import fuzz, process
 
-CAMFIND_KEY_FILE = "/Users/mgeorge/insight/StreetsAhead/StreetsAhead/keys/camfind.key" # file with CamFind API Key on first line
+from StreetsAhead.config import *
+
 with open(CAMFIND_KEY_FILE, 'r') as ff:
     CAMFIND_KEY = ff.readline().replace('\n', '')
 
