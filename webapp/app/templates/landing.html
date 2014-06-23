@@ -15,82 +15,79 @@
 </head>
 <body>
 
-<div class="container-full">
+<div class="container-full" id="topofpage">
 
       <div class="row">
        
         <div class="col-lg-12 text-center v-center">
           
           <h1>Streets Ahead</h1>
-          <p class="lead">Pointing you in the right direction</p>
+          <p class="subhead">Pointing you in the right direction</p>
           
           <br>
           
           <a href="/go" class="btn btn-success btn-lg">Get Going!</a>
-	  <a href="#" class="btn btn-default btn-lg" id="LearnMore"
-            data-scroll-to data-scroll-to-duration="500">Learn More</a>
+	  <a href="#" class="btn btn-default btn-lg" id="LearnMore">Learn More</a>
 
         </div>
         
       </div> <!-- /row -->
   
-  	  <div class="row" id="details">
-       
-        <div class="col-lg-12 text-center v-center" style="font-size:39pt;">
-          <a href="#"><i class="icon-google-plus"></i></a> <a href="#"><i class="icon-facebook"></i></a>  <a href="#"><i class="icon-twitter"></i></a> <a href="#"><i class="icon-github"></i></a> <a href="#"><i class="icon-pinterest"></i></a>
-        </div>
-      
-      </div>
-  
-  	<br><br><br><br><br>
-
 </div> <!-- /container full -->
 
-<div class="container">
-  
-  	<hr>
-  
-  	<div class="row">
-        <div class="col-md-4">
-          <div class="panel panel-default">
-            <div class="panel-heading"><h3>Hello.</h3></div>
-            <div class="panel-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis pharetra varius quam sit amet vulputate. 
-            Quisque mauris augue, molestie tincidunt condimentum vitae, gravida a libero. Aenean sit amet felis 
-            dolor, in sagittis nisi. Sed ac orci quis tortor imperdiet venenatis. Duis elementum auctor accumsan. 
-            Aliquam in felis sit amet augue.
-            </div>
-          </div>
-        </div>
-      	<div class="col-md-4">
-        	<div class="panel panel-default">
-            <div class="panel-heading"><h3>Hello.</h3></div>
-            <div class="panel-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis pharetra varius quam sit amet vulputate. 
-            Quisque mauris augue, molestie tincidunt condimentum vitae, gravida a libero. Aenean sit amet felis 
-            dolor, in sagittis nisi. Sed ac orci quis tortor imperdiet venenatis. Duis elementum auctor accumsan. 
-            Aliquam in felis sit amet augue.
-            </div>
-          </div>
-        </div>
-      	<div class="col-md-4">
-        	<div class="panel panel-default">
-            <div class="panel-heading"><h3>Hello.</h3></div>
-            <div class="panel-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis pharetra varius quam sit amet vulputate. 
-            Quisque mauris augue, molestie tincidunt condimentum vitae, gravida a libero. Aenean sit amet felis 
-            dolor, in sagittis nisi. Sed ac orci quis tortor imperdiet venenatis. Duis elementum auctor accumsan. 
-            Aliquam in felis sit amet augue.
-            </div>
-          </div>
-        </div>
-    </div>
-  
-	<div class="row">
-        <div class="col-lg-12">
-        <br><br>
-          <p class="pull-right"><a href="http://www.bootply.com">Template from Bootply</a> &nbsp; ©Copyright 2013 ACME<sup>TM</sup> Brand.</p>
-        <br><br>
-        </div>
-    </div>
-</div>
+
+<!-- Marketing messaging and featurettes
+================================================== -->
+<!-- Wrap the rest of the page in another container to center all the content. -->
+<div class="container marketing" id="details">
+<br>
+
+  <!-- START THE FEATURETTES -->
+
+  <div class="featurette">
+    <img class="featurette-image img-rounded pull-right" src={{ url_for('static', filename='images/zacharys.png') }}>
+    <h2 class="featurette-heading">Cutting-Edge Image Recognition
+<!--    <span class="text-muted">Improving Google Street View</span> -->
+    </h2>
+    <p class="lead">Accurate and quick descriptions of Google Street
+    View imagery based on machine learning algorithms and human supervision.</p>
+  </div>
+
+  <hr class="featurette-divider">
+
+  <div class="featurette">
+    <img class="featurette-image img-rounded pull-left" src={{
+    url_for('static', filename='images/udupi.png') }} style="border: 0px;">
+    <h2 class="featurette-heading">Improved Search Results</h2>
+    <p class="lead">Find the entrance to that restaurant you're
+    looking for. Ground truth from neighborhood signs gives more precise locations
+    than address geocodes.</p>
+  </div>
+
+  <hr class="featurette-divider">
+
+  <div class="featurette">
+    <img class="featurette-image img-circle pull-right" src={{ url_for('static', filename='images/cat.png') }}>
+    <h2 class="featurette-heading">Context for Your World</h2>
+    <p class="lead">Image labels can be passed to screen readers for
+    the visually impaired or translated into different
+    languages. Reverse search for all the cats found in Street View images.</p>
+  </div>
+
+  <hr class="featurette-divider">
+
+  <!-- /END THE FEATURETTES -->
+
+
+  <!-- FOOTER -->
+  <footer>
+    <p class="pull-right" id="BackToTop"><a href="#">Back to top</a></p>
+    <p>Template from <a href="http://www.bootply.com">Bootply</a>.</p>
+  </footer>
+
+</div><!-- /.container -->
+
+
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
 <script>
@@ -101,6 +98,15 @@
       }, 500);
     });
   });
+
+  $(document).ready(function (){
+    $("#BackToTop").click(function (){
+      $('html, body').animate({
+        scrollTop: $("#topofpage").offset().top
+      }, 500);
+    });
+  });
+
 </script>
  
 </body>
