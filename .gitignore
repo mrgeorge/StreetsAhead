@@ -3,6 +3,6 @@
 StreetsAhead/keys/
 caffe_*_iter_*
 *.DS_Store
-webapps/venv/
-webapps/node_modules
+webapp/node_modules
+webapp/app/static/vendor
 /sqldumps
