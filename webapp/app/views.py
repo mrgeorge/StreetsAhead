@@ -61,7 +61,7 @@ def locsToImages(locs):
 # ROUTING/VIEW FUNCTIONS
 @app.route('/')
 def landing():
-    return render_template('landing2.html')
+    return render_template('landing.html')
 
 #@app.route('/', methods = ['GET', 'POST'])
 @app.route('/index', methods = ['GET', 'POST'])
