@@ -34,7 +34,7 @@ body {
 
 /* Genericon social icon styles
 ---------------------------------------------------- */
-.genericon-github:before,
+/*.genericon-github:before,
 .genericon-linkedin:before,
 .genericon-twitter:before {
     -webkit-font-smoothing: antialiased;
@@ -47,7 +47,7 @@ body {
     vertical-align: middle;
     margin: 10px;
 }
-
+*/
 .title {
     text-align:center;
 }
