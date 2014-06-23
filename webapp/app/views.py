@@ -61,7 +61,7 @@ def locsToImages(locs):
 # ROUTING/VIEW FUNCTIONS
 @app.route('/')
 def landing():
-    return render_template('landing.html')
+    return render_template('landing2.html')
 
 #@app.route('/', methods = ['GET', 'POST'])
 @app.route('/index', methods = ['GET', 'POST'])
@@ -93,9 +93,9 @@ def page_not_found(error):
 def internal_error(error):
     return render_template('500.html'), 500
 
-@app.route('/test')
-def test():
-    return render_template('test.html')
+@app.route('/go')
+def go():
+    return render_template('go.html')
 
 @app.route('/_cache_query', methods = ['POST'])
 def cache_query():

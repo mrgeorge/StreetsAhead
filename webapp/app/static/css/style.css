@@ -180,3 +180,44 @@ body {
     visibility:hidden;
     cursor:pointer;
 }
+
+
+/* Landing page */
+@import url(http://fonts.googleapis.com/css?family=Antic+Slab);
+
+html,body {
+  height:100%;
+}
+
+h1 {
+  font-family: 'Antic Slab', serif;
+  font-size:80px;
+  color:white;
+}
+
+.lead {
+	color:white;
+}
+
+/* Custom container */
+.container-full {
+  margin: 0 auto;
+  width: 100%;
+  min-height:100%;
+  background-color:gray;
+  color:white;
+  overflow:hidden;
+}
+
+.container-full a {
+  color:#efefef;
+  text-decoration:none;
+}
+
+.v-center {
+  margin-top:15%;
+}
+
+.btn-default {
+  background-color:gray;
+}
