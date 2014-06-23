@@ -32,22 +32,6 @@ body {
 #content	{clear:both; height:240px; position:relative;}
 
 
-/* Genericon social icon styles
----------------------------------------------------- */
-/*.genericon-github:before,
-.genericon-linkedin:before,
-.genericon-twitter:before {
-    -webkit-font-smoothing: antialiased;
-    font: normal 32px/1 'Genericons';
-    vertical-align: middle;
-}
-
-.social-icons {
-    display: inline-block;
-    vertical-align: middle;
-    margin: 10px;
-}
-*/
 .title {
     text-align:center;
 }
