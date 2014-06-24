@@ -116,6 +116,24 @@ def cache_query():
     print "executed cache query"
     return jsonify(result=0)
 
+@app.route('/_cache_imtext', methods = ['POST'])
+def cache_imtext():
+    """Called by ajax post in places.js to get place info to python
+
+    Cache location to places table in SQL db.
+    """
+    panoId = request.form['panoId']
+    heading = float(request.form['heading'])
+    text = request.form['text']
+    cur.execute("""INSERT INTO imtext
+        (panoId, heading, text)
+        VALUES (%s, %s, %s);""",
+        (panoId, heading, text))
+    db.commit()
+
+    print "executed cache imtext"
+    return jsonify(result=0)
+
 @app.route('/_get_pano')
 def get_pano():
     """Called by ajax post in places.js to get best outdoor pano from xml api
@@ -155,18 +173,15 @@ def pano_to_text():
     print panoId, placeName
 
     locs = ingest.getLocations(panoLat, panoLng, heading=heading)
-#    images = locsToImages(locs)
-#    locs = []
-#    images = []
 
     panoIdList = [panoId for loc in locs]
     panoLatList = [loc[0] for loc in locs]
     panoLngList = [loc[1] for loc in locs]
     headingList = [loc[2] for loc in locs]
-#    textList = [img.text for img in images]
 
     print panoId, headingList
 
+    # First check the cache, then pass to img recognizer
     textList = [getCacheText(panoId, loc[2]) for loc in locs]
     for ii, text in enumerate(textList):
         if text is None:

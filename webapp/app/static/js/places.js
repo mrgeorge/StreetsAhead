@@ -199,6 +199,13 @@ function initialize() {
                       });
                       SAMarkerList.push({"marker": thisMarker, "panoId": results.panoIdList[ii]});
                     }
+
+                    // Pass image text to flask view to cache in database
+                    $.post($SCRIPT_ROOT + '/_cache_imtext', {
+                      "panoId": results.panoIdList[ii],
+                      "heading": results.headingList[ii],
+                      "text": results.textList[ii]
+                    });
                   }
               });
 
