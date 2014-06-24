@@ -107,6 +107,7 @@ def cache_query():
     address = request.form['address']
     lat = float(request.form['latitude'])
     lng = float(request.form['longitude'])
+    db.ping(True)
     cur.execute("""INSERT INTO places
         (placename, address, latitude, longitude)
         VALUES (%s, %s, %s, %s);""",
@@ -125,6 +126,7 @@ def cache_imtext():
     panoId = request.form['panoId']
     heading = float(request.form['heading'])
     text = request.form['text']
+    db.ping(True)
     cur.execute("""INSERT INTO imtext
         (panoId, heading, text)
         VALUES (%s, %s, %s);""",
@@ -215,6 +217,7 @@ def pano_to_text():
                     "bestHeading": bestHeading})
 
 def getCacheText(panoId, heading):
+    db.ping(True)
     cur.execute("""SELECT text FROM imtext
                    WHERE panoId = %s
                    AND heading BETWEEN %s AND %s""",
