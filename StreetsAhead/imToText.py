@@ -12,13 +12,13 @@ with open(CAMFIND_KEY_FILE, 'r') as ff:
 def camfindPost(imgurl, maxTries=3, sleep=1):
     nTries = 0
     while nTries < maxTries:
-        post = unirest.post("https://camfind.p.mashape.com/image_requests",
-            headers={"X-Mashape-Authorization": CAMFIND_KEY},
-            params={ 
-                "image_request[locale]": "en_US",
-                "image_request[remote_image_url]": imgurl
-            })
         try:
+            post = unirest.post("https://camfind.p.mashape.com/image_requests",
+                headers={"X-Mashape-Authorization": CAMFIND_KEY},
+                params={
+                    "image_request[locale]": "en_US",
+                    "image_request[remote_image_url]": imgurl
+                })
             token = post.body['token']
             return token
         except KeyError, SSLError:
@@ -28,13 +28,17 @@ def camfindPost(imgurl, maxTries=3, sleep=1):
     print "Warning: camfindPost failed", imgurl
     return None
 
-def camfindGet(token, maxTries=10, sleep=1):
+def camfindGet(token, maxTries=15, sleep=1, initSleep=5):
+
+    time.sleep(initSleep) # Camfind recommends ~5 second wait to start,
+                          # then 1-2 secs between retries
+
     nTries = 0
     while nTries < maxTries:
-        get = unirest.get("https://camfind.p.mashape.com/image_responses/" + token,
-                headers={"X-Mashape-Authorization": CAMFIND_KEY}
-            )
         try:
+            get = unirest.get("https://camfind.p.mashape.com/image_responses/" +
+                              token, headers={"X-Mashape-Authorization":
+                                              CAMFIND_KEY})
             return get.body['name']
         except KeyError, SSLError:
             nTries += 1
