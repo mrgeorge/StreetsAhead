@@ -86,14 +86,6 @@ function initialize() {
       ].join(' ');
     }
 
-    // Pass query info to flask view to cache in database
-    $.post($SCRIPT_ROOT + '/_cache_query', {
-	"placeName": place.name,
-	"address": address,
-	"latitude": place.geometry.location.lat(),
-	"longitude": place.geometry.location.lng()
-    });
-
     // Define contents of infobox
     var contentString = '<div id="svcontainer">' +
             '<div id="ibtext"><strong>' + place.name + '</strong><br>'+
@@ -145,6 +137,15 @@ function initialize() {
 	"longitude": place.geometry.location.lng()
         }, function(data) {
 	  panoGuess = data.pano_id;
+
+          // Pass place info to flask view to cache in database
+          $.post($SCRIPT_ROOT + '/_cache_place', {
+            "placeName": place.name,
+            "address": address,
+            "latitude": place.geometry.location.lat(),
+            "longitude": place.geometry.location.lng(),
+            "panoID": panoGuess
+          });
 
           var SVService = new google.maps.StreetViewService();
           SVService.getPanoramaById(panoGuess, function (panoData, status) {
@@ -199,16 +200,8 @@ function initialize() {
                       });
                       SAMarkerList.push({"marker": thisMarker, "panoId": results.panoIdList[ii]});
                     }
-
-                    // Pass image text to flask view to cache in database
-                    $.post($SCRIPT_ROOT + '/_cache_imtext', {
-                      "panoId": results.panoIdList[ii],
-                      "heading": results.headingList[ii],
-                      "text": results.textList[ii]
-                    });
                   }
               });
-
             }else{
               $this.text("Sorry! Street View is not available.");
               // no street view available in this range, or some error occurred
