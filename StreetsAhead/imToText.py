@@ -30,20 +30,22 @@ def camfindPost(imgurl, maxTries=3, sleep=1):
 
 def camfindGet(token, maxTries=15, sleep=1, initSleep=5):
 
-    time.sleep(initSleep) # Camfind recommends ~5 second wait to start,
-                          # then 1-2 secs between retries
+    if token is not None:
+        time.sleep(initSleep) # Camfind recommends ~5 second wait to start,
+                              # then 1-2 secs between retries
 
-    nTries = 0
-    while nTries < maxTries:
-        try:
-            get = unirest.get("https://camfind.p.mashape.com/image_responses/" +
+        nTries = 0
+        while nTries < maxTries:
+            try:
+                get = unirest.get("https://camfind.p.mashape.com/image_responses/" +
                               token, headers={"X-Mashape-Authorization":
                                               CAMFIND_KEY})
-            return get.body['name']
-        except KeyError, SSLError:
-            nTries += 1
-            time.sleep(sleep)
+                return get.body['name']
+            except KeyError, SSLError:
+                nTries += 1
+                time.sleep(sleep)
 
+    # only get here if token is None or camfind get request failed
     print "Warning: camfindGet failed", token
     return None
 
