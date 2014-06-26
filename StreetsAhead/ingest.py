@@ -47,7 +47,7 @@ def getLocations(lat0, lng0, heading=0.):
     headings = [heading, (heading+45) % 360, (heading-45) % 360]
     return zip(lats, lngs, headings)
 
-def getImageUrl(lat, lng, heading, size="400x400", fov=50):
+def getImageUrl(lat, lng, heading, size="640x640", fov=50):
     """Call StreetView API to get image for coordinates"""
 
     urlbase = "http://maps.googleapis.com/maps/api/streetview"
