@@ -93,18 +93,25 @@ def internal_error(error):
 def go():
     return render_template('go.html')
 
-# ASYNCHRONOUS FUNCTIONS AND SUPPORT
+# ASYNCHRONOUS HANDLERS AND SUPPORT FUNCTIONS
+# handlers receive requests from js and return JSON
+# functions receive and return python args
 @app.route('/_cache_place', methods = ['POST'])
-def cache_place():
-    """Called by ajax post in places.js to get place info to python
-
-    Cache location to places table in SQL db.
-    """
+def cache_place_handler():
+    """Called by ajax post in places.js to get place info to python"""
     placeName = request.form['placeName']
     address = request.form['address']
     lat = float(request.form['latitude'])
     lng = float(request.form['longitude'])
     panoID = request.form['panoID']
+
+    result = cache_place_function(placeName, address, lat, lng, panoID)
+
+    print "executed cache_place"
+    return jsonify(result=result)
+
+def cache_place_function(placeName, address, lat, lng, panoID):
+    """Cache location to places table in SQL db."""
 
     db.ping(True)
     cur.execute("""INSERT INTO places
@@ -112,9 +119,7 @@ def cache_place():
                    VALUES (%s, %s, %s, %s, %s);""",
                    (placeName, address, lat, lng, panoID))
     db.commit()
-
-    print "executed cache_place"
-    return jsonify(result=0)
+    return 0
 
 def cache_pano(panoID, panoLat, panoLng):
     db.ping(True)
@@ -127,7 +132,6 @@ def cache_pano(panoID, panoLat, panoLng):
         pass
 
     print "executed cache_pano"
-    return jsonify(result=0)
 
 def cache_image(panoID, heading, url, token, text):
     """Insert panorama details into database
@@ -143,16 +147,22 @@ def cache_image(panoID, heading, url, token, text):
     print "executed cache image"
 
 @app.route('/_get_pano')
-def get_pano():
-    """Called by ajax post in places.js to get best outdoor pano from xml api
+def get_pano_handler():
+    """Called by ajax post in places.js to get best outdoor pano from xml api"""
+    lat = float(request.args.get('latitude', 0.))
+    lng = float(request.args.get('longitude', 0.))
+
+    pano_id, pano_lat, pano_lng = get_pano_function(lat, lng)
+
+    return jsonify(pano_id=pano_id)
+
+def get_pano_function(lat, lng):
+    """Hacky way to get Google's guess for the best outdoor pano
 
     See discussion here: http://stackoverflow.com/questions/14796604/how-to-know-if-street-view-panorama-is-indoors-or-outdoors
 
-    This is a hacky way to get Google's guess for the best outdoor pano for
-    a given location.
+    Warning: uses an undocumented API
     """
-    lat = float(request.args.get('latitude', 0.))
-    lng = float(request.args.get('longitude', 0.))
 
     urlbase = "http://cbk0.google.com/cbk?output=xml&hl=x-local"
     ff = urllib2.urlopen("{}&ll={},{}".format(urlbase, lat, lng))
@@ -164,13 +174,17 @@ def get_pano():
     if len(allDP) > 0:
         dp = allDP[0]
         pano_id = [attr[1] for attr in dp.attrs if attr[0]=='pano_id'][0]
+        pano_lat = [attr[1] for attr in dp.attrs if attr[0]=='lat'][0]
+        pano_lng = [attr[1] for attr in dp.attrs if attr[0]=='lng'][0]
     else:
         pano_id = "NULL"
+        pano_lat = "NULL"
+        pano_lng = "NULL"
 
-    return jsonify(pano_id=pano_id)
+    return (pano_id, pano_lat, pano_lng)
 
 @app.route('/_pano_to_text')
-def pano_to_text():
+def pano_to_text_handler():
 
     panoID = request.args.get('panoId', 'NULL')
     panoLat = float(request.args.get('panoLat', 0.))
@@ -180,6 +194,17 @@ def pano_to_text():
 
     print panoID, placeName
 
+    panoIDList, panoLatList, panoLngList, headingList, textList, bestPanoID, bestHeading = pano_to_text_function(panoID, panoLat, panoLng, heading, placeName)
+
+    return jsonify({"panoIdList": panoIDList,
+                    "panoLatList": panoLatList,
+                    "panoLngList": panoLngList,
+                    "headingList": headingList,
+                    "textList": textList,
+                    "bestPanoId": bestPanoID,
+                    "bestHeading": bestHeading})
+
+def pano_to_text_function(panoID, panoLat, panoLng, heading, placeName):
     locList = ingest.getLocations(panoLat, panoLng, heading=heading)
     panoIDList = [panoID for loc in locList]
     panoLatList = [loc[0] for loc in locList]
@@ -235,13 +260,13 @@ def pano_to_text():
             bestPanoID = thisPanoID
         print thisText, score
 
-    return jsonify({"panoIdList": panoIDList,
-                    "panoLatList": panoLatList,
-                    "panoLngList": panoLngList,
-                    "headingList": headingList,
-                    "textList": textList,
-                    "bestPanoId": bestPanoID,
-                    "bestHeading": bestHeading})
+    return (panoIDList,
+            panoLatList,
+            panoLngList,
+            headingList,
+            textList,
+            bestPanoID,
+            bestHeading)
 
 def getCacheText(panoID, heading, deltaHeading=10.):
     """Check if image text already exists and if so return it, else None"""
