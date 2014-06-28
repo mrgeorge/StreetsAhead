@@ -5,6 +5,7 @@ import unirest
 from fuzzywuzzy import fuzz, process
 
 from StreetsAhead.config import *
+from StreetsAhead import ingest, cache
 
 with open(CAMFIND_KEY_FILE, 'r') as ff:
     CAMFIND_KEY = ff.readline().replace('\n', '')
@@ -66,3 +67,94 @@ def wordMatch(imgStr, queryPlaceName):
     # default forces to lower case alphanumeric chars
     # high score (max 100) means good match
     return fuzz.WRatio(imgStr, queryPlaceName)
+
+def postImages(locList):
+    """Given locations, submit images to CamFind
+
+    Returns url list and token list (without text attr filled in)
+
+    Note: want to leave as much time as reasonable between calls to
+        camfindPost (postImages) and camfindGet (getImageLabels)
+    """
+
+    urlList = []
+    tokenList = []
+    for loc in locList:
+        lat, lng, heading = loc
+        url = ingest.getImageUrl(lat, lng, heading)
+        urlList.append(url)
+        tokenList.append(camfindPost(url))
+
+    return (urlList, tokenList)
+
+def getImageLabels(tokenList):
+    """Retrieve image labels (text) from CamFind"""
+    textList = [camfindGet(token) for token in tokenList]
+    textList = [text if text is not None else "NULL" for text in textList]
+
+    return textList
+
+def pano_to_text_function(panoID, panoLat, panoLng, heading, placeName, db, cur):
+    locList = ingest.getLocations(panoLat, panoLng, heading=heading)
+    panoIDList = [panoID for loc in locList]
+    panoLatList = [loc[0] for loc in locList]
+    panoLngList = [loc[1] for loc in locList]
+    headingList = [loc[2] for loc in locList]
+
+    print panoID, headingList
+
+    # Cache pano locations for each entry in locList
+    # NOTE: currently assumes panoID is same for each loc
+    # if panoID's are different, must cache each one
+    cache.cache_pano(db, cur, panoID, panoLat, panoLng)
+
+    # First check the cache to get list of missing image labels
+    textList = [cache.getCacheText(db, cur, panoID, loc[2]) for loc in locList]
+    missingList = []
+    for ii, text in enumerate(textList):
+        if text is None or text == "NULL":
+            missingList.append(ii)
+    missingLocList = [locList[ii] for ii in missingList]
+
+    # Run CamFind on images that aren't cached
+    urlList, tokenList = postImages(missingLocList)
+
+    # Get CamFind results (may take a while)
+    newTextList = getImageLabels(tokenList)
+
+    # Update textList with any new labels we received
+    for ii, newText in zip(missingList, newTextList):
+        if newText is not None: # got a new image text label
+            textList[ii] = newText
+        else:
+            textList[ii] = "NULL"
+
+        # Save new label to cache
+        cache.cache_image(db, cur,
+                          panoIDList[ii],
+                          headingList[ii],
+                          urlList[ii],
+                          tokenList[ii],
+                          textList[ii])
+
+    # Get panoID and heading for best matching text
+    # if no match scores better than scoreLimit, use default pointing
+    bestScore = -1
+    scoreLimit = 40
+    bestHeading = heading
+    bestPanoID = panoID
+    for thisText, thisHeading, thisPanoID in zip(textList, headingList,
+                                                 panoIDList):
+        score = wordMatch(thisText, placeName)
+        if score > bestScore and score > scoreLimit:
+            bestHeading = thisHeading
+            bestPanoID = thisPanoID
+        print thisText, score
+
+    return (panoIDList,
+            panoLatList,
+            panoLngList,
+            headingList,
+            textList,
+            bestPanoID,
+            bestHeading)

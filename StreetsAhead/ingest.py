@@ -1,7 +1,7 @@
 import re
-import urllib
+import urllib2
 
-import numpy as np
+from BeautifulSoup import BeautifulStoneSoup
 import googleplaces
 
 from StreetsAhead.config import *
@@ -55,6 +55,34 @@ def getImageUrl(lat, lng, heading, size="640x640", fov=50):
     url = "{urlbase}?location={lat},{lng}&heading={heading}&fov={fov}&size={size}".format(urlbase=urlbase, lat=lat, lng=lng, heading=heading, fov=fov, size=size)
 
     return url
+
+def get_pano_function(lat, lng):
+    """Hacky way to get Google's guess for the best outdoor pano
+
+    See discussion here: http://stackoverflow.com/questions/14796604/how-to-know-if-street-view-panorama-is-indoors-or-outdoors
+
+    Warning: uses an undocumented API
+    """
+
+    urlbase = "http://cbk0.google.com/cbk?output=xml&hl=x-local"
+    ff = urllib2.urlopen("{}&ll={},{}".format(urlbase, lat, lng))
+    xml = ff.read()
+    ff.close()
+
+    bs = BeautifulStoneSoup(xml)
+    allDP = bs.findAll("data_properties")
+    if len(allDP) > 0:
+        dp = allDP[0]
+        pano_id = [attr[1] for attr in dp.attrs if attr[0]=='pano_id'][0]
+        pano_lat = [attr[1] for attr in dp.attrs if attr[0]=='lat'][0]
+        pano_lng = [attr[1] for attr in dp.attrs if attr[0]=='lng'][0]
+    else:
+        pano_id = "NULL"
+        pano_lat = "NULL"
+        pano_lng = "NULL"
+
+    return (pano_id, pano_lat, pano_lng)
+
 
 if __name__ == "__main__":
 

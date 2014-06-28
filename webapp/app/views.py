@@ -1,13 +1,8 @@
 from flask import render_template, flash, redirect, jsonify, request
 from app import app, host, port, user, passwd, db
 from app.helpers.database import con_db
-from forms import EntryForm
-
-import urllib2
-from BeautifulSoup import BeautifulStoneSoup
 
 import pymysql
-from pymysql import IntegrityError
 
 try:
     from StreetsAhead import ingest, imToText
@@ -16,7 +11,7 @@ except ImportError: # add parent dir to python search path
     import os, sys
     path, filename = os.path.split(__file__)
     sys.path.append(os.path.abspath(os.path.join(path,"../../../StreetsAhead")))
-    from StreetsAhead import ingest, imToText
+    from StreetsAhead import ingest, imToText, cache
     from StreetsAhead.config import *
 
 with open(MYSQL_KEY_FILE, 'r') as ff:
@@ -24,47 +19,6 @@ with open(MYSQL_KEY_FILE, 'r') as ff:
 db = pymysql.connect(user=username, passwd=password, host="localhost",
                      port=3306, db="StreetsAhead")
 cur = db.cursor()
-
-class Image(object):
-    def __init__(self, url, token, text):
-        self.url = url
-        self.token = token
-        self.text = text
-
-def queryToLocList(form):
-    inputQuery = form.query.data
-    keywordStr, locStr = inputQuery.split(',')
-    place = ingest.getPlaceFromQuery(keywordStr, locStr)
-
-    locList = ingest.getLocations(place.geo_location['lat'],
-                                   place.geo_location['lng'])
-    return locList
-
-def postImages(locList):
-    """Given locations, submit images to CamFind
-
-    Returns url list and token list (without text attr filled in)
-
-    Note: want to leave as much time as reasonable between calls to
-        camfindPost (postImages) and camfindGet (getImageLabels)
-    """
-
-    urlList = []
-    tokenList = []
-    for loc in locList:
-        lat, lng, heading = loc
-        url = ingest.getImageUrl(lat, lng, heading)
-        urlList.append(url)
-        tokenList.append(imToText.camfindPost(url))
-
-    return (urlList, tokenList)
-
-def getImageLabels(tokenList):
-    """Retrieve image labels (text) from CamFind"""
-    textList = [imToText.camfindGet(token) for token in tokenList]
-    textList = [text if text is not None else "NULL" for text in textList]
-
-    return textList
 
 # ROUTING/VIEW FUNCTIONS
 @app.route('/')
@@ -93,9 +47,7 @@ def internal_error(error):
 def go():
     return render_template('go.html')
 
-# ASYNCHRONOUS HANDLERS AND SUPPORT FUNCTIONS
-# handlers receive requests from js and return JSON
-# functions receive and return python args
+# ASYNCHRONOUS HANDLERS
 @app.route('/_cache_place', methods = ['POST'])
 def cache_place_handler():
     """Called by ajax post in places.js to get place info to python"""
@@ -105,46 +57,16 @@ def cache_place_handler():
     lng = float(request.form['longitude'])
     panoID = request.form['panoID']
 
-    result = cache_place_function(placeName, address, lat, lng, panoID)
+    result = cache.cache_place_function(db,
+                                        cur,
+                                        placeName,
+                                        address,
+                                        lat,
+                                        lng,
+                                        panoID)
 
     print "executed cache_place"
     return jsonify(result=result)
-
-def cache_place_function(placeName, address, lat, lng, panoID):
-    """Cache location to places table in SQL db."""
-
-    db.ping(True)
-    cur.execute("""INSERT INTO places
-                   (placename, address, latitude, longitude, panoID)
-                   VALUES (%s, %s, %s, %s, %s);""",
-                   (placeName, address, lat, lng, panoID))
-    db.commit()
-    return 0
-
-def cache_pano(panoID, panoLat, panoLng):
-    db.ping(True)
-    try:
-        cur.execute("""INSERT INTO panoLocs (panoID, panoLat, panoLng)
-                       VALUES (%s, %s, %s)""", (panoID, panoLat, panoLng))
-        db.commit()
-    except IntegrityError:
-        # Ignore if panoID is already stored in table
-        pass
-
-    print "executed cache_pano"
-
-def cache_image(panoID, heading, url, token, text):
-    """Insert panorama details into database
-
-    Note: some info may not be available, e.g. if CamFind times out
-    """
-    db.ping(True)
-    cur.execute("""INSERT INTO images
-                   (panoID, heading, url, camfindToken, text)
-                   VALUES (%s, %s, %s, %s, %s);""",
-                   (panoID, heading, url, token, text))
-    db.commit()
-    print "executed cache image"
 
 @app.route('/_get_pano')
 def get_pano_handler():
@@ -152,40 +74,13 @@ def get_pano_handler():
     lat = float(request.args.get('latitude', 0.))
     lng = float(request.args.get('longitude', 0.))
 
-    pano_id, pano_lat, pano_lng = get_pano_function(lat, lng)
+    pano_id, pano_lat, pano_lng = ingest.get_pano_function(lat, lng)
 
     return jsonify(pano_id=pano_id)
 
-def get_pano_function(lat, lng):
-    """Hacky way to get Google's guess for the best outdoor pano
-
-    See discussion here: http://stackoverflow.com/questions/14796604/how-to-know-if-street-view-panorama-is-indoors-or-outdoors
-
-    Warning: uses an undocumented API
-    """
-
-    urlbase = "http://cbk0.google.com/cbk?output=xml&hl=x-local"
-    ff = urllib2.urlopen("{}&ll={},{}".format(urlbase, lat, lng))
-    xml = ff.read()
-    ff.close()
-
-    bs = BeautifulStoneSoup(xml)
-    allDP = bs.findAll("data_properties")
-    if len(allDP) > 0:
-        dp = allDP[0]
-        pano_id = [attr[1] for attr in dp.attrs if attr[0]=='pano_id'][0]
-        pano_lat = [attr[1] for attr in dp.attrs if attr[0]=='lat'][0]
-        pano_lng = [attr[1] for attr in dp.attrs if attr[0]=='lng'][0]
-    else:
-        pano_id = "NULL"
-        pano_lat = "NULL"
-        pano_lng = "NULL"
-
-    return (pano_id, pano_lat, pano_lng)
-
 @app.route('/_pano_to_text')
 def pano_to_text_handler():
-
+    """Given panoID and location, get text labels for nearby images"""
     panoID = request.args.get('panoId', 'NULL')
     panoLat = float(request.args.get('panoLat', 0.))
     panoLng = float(request.args.get('panoLng', 0.))
@@ -194,7 +89,13 @@ def pano_to_text_handler():
 
     print panoID, placeName
 
-    panoIDList, panoLatList, panoLngList, headingList, textList, bestPanoID, bestHeading = pano_to_text_function(panoID, panoLat, panoLng, heading, placeName)
+    panoLists = imToText.pano_to_text_function(panoID,
+                                               panoLat,
+                                               panoLng,
+                                               heading,
+                                               placeName,
+                                               db, cur)
+    panoIDList, panoLatList, panoLngList, headingList, textList, bestPanoID, bestHeading = panoLists
 
     return jsonify({"panoIdList": panoIDList,
                     "panoLatList": panoLatList,
@@ -203,80 +104,3 @@ def pano_to_text_handler():
                     "textList": textList,
                     "bestPanoId": bestPanoID,
                     "bestHeading": bestHeading})
-
-def pano_to_text_function(panoID, panoLat, panoLng, heading, placeName):
-    locList = ingest.getLocations(panoLat, panoLng, heading=heading)
-    panoIDList = [panoID for loc in locList]
-    panoLatList = [loc[0] for loc in locList]
-    panoLngList = [loc[1] for loc in locList]
-    headingList = [loc[2] for loc in locList]
-
-    print panoID, headingList
-
-    # Cache pano locations for each entry in locList
-    # NOTE: currently assumes panoID is same for each loc
-    # if panoID's are different, must cache each one
-    cache_pano(panoID, panoLat, panoLng)
-
-    # First check the cache to get list of missing image labels
-    textList = [getCacheText(panoID, loc[2]) for loc in locList]
-    missingList = []
-    for ii, text in enumerate(textList):
-        if text is None or text == "NULL":
-            missingList.append(ii)
-    missingLocList = [locList[ii] for ii in missingList]
-
-    # Run CamFind on images that aren't cached
-    urlList, tokenList = postImages(missingLocList)
-
-    # Get CamFind results (may take a while)
-    newTextList = getImageLabels(tokenList)
-
-    # Update textList with any new labels we received
-    for ii, newText in zip(missingList, newTextList):
-        if newText is not None: # got a new image text label
-            textList[ii] = newText
-        else:
-            textList[ii] = "NULL"
-
-        # Save new label to cache
-        cache_image(panoIDList[ii],
-                    headingList[ii],
-                    urlList[ii],
-                    tokenList[ii],
-                    textList[ii])
-
-    # Get panoID and heading for best matching text
-    # if no match scores better than scoreLimit, use default pointing
-    bestScore = -1
-    scoreLimit = 40
-    bestHeading = heading
-    bestPanoID = panoID
-    for thisText, thisHeading, thisPanoID in zip(textList, headingList,
-                                                 panoIDList):
-        score = imToText.wordMatch(thisText, placeName)
-        if score > bestScore and score > scoreLimit:
-            bestHeading = thisHeading
-            bestPanoID = thisPanoID
-        print thisText, score
-
-    return (panoIDList,
-            panoLatList,
-            panoLngList,
-            headingList,
-            textList,
-            bestPanoID,
-            bestHeading)
-
-def getCacheText(panoID, heading, deltaHeading=10.):
-    """Check if image text already exists and if so return it, else None"""
-    db.ping(True)
-    cur.execute("""SELECT text FROM images
-                   WHERE panoId = %s
-                   AND heading BETWEEN %s AND %s""",
-                   (panoID, heading-deltaHeading, heading+deltaHeading))
-    try:
-        text = cur.fetchone()[0]
-        return text
-    except TypeError:
-        return None
