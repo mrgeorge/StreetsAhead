@@ -6,21 +6,26 @@ from BeautifulSoup import BeautifulStoneSoup
 import googleplaces
 
 from StreetsAhead.config import *
+
 with open(GOOGLE_KEY_FILE, 'r') as ff:
     GOOGLE_KEY = ff.readline().replace('\n', '')
-gp = googleplaces.GooglePlaces(GOOGLE_KEY)
+GP = googleplaces.GooglePlaces(GOOGLE_KEY)
 
 #inputKeywordStr = "Zachary's"
 inputKeywordStr = "CREAM"
 inputLocationStr = "Berkeley, CA"
 
-def getPlaceFromQuery(inputKeywordStr, inputLocationStr):
-    """Convert search query text into place object"""
-    places = gp.nearby_search(keyword=inputKeywordStr,
-                              location=inputLocationStr)
-    place = places.places[0] # take top listed place (sorted by prominence)
-    return place
-    
+def locateAddress(address):
+    """Use Google's geocoding API to compute position from address
+
+    Inputs:
+        address - string
+    Returns:
+        location object
+    """
+
+    return GP.text_search(address).places
+
 def getQueryListFromPlace(place):
     """Return list of words to find in image
 
@@ -45,7 +50,7 @@ def getLocations(lat0, lng0, heading=0.):
     # TODO - expand search list to neighboring points along road
     lats = [lat0, lat0, lat0]
     lngs = [lng0, lng0, lng0]
-    headings = [heading, (heading+45) % 360, (heading-45) % 360]
+    headings = [heading % 360, (heading+45) % 360, (heading-45) % 360]
     return zip(lats, lngs, headings)
 
 def getImageUrl(lat, lng, heading, size="640x640", fov=50):
@@ -64,7 +69,7 @@ def get_pano_function(lat, lng):
 
     Warning: uses an undocumented API
     """
-
+    print lat, lng
     urlbase = "http://cbk0.google.com/cbk?output=xml&hl=x-local"
     ff = urllib2.urlopen("{}&ll={},{}".format(urlbase, lat, lng))
     xml = ff.read()
@@ -96,18 +101,4 @@ def getHeading(lat1, lng1, lat2, lng2):
                         np.sin(lat1rad) * np.cos(lat2rad) *
                         np.cos(lng1rad - lng2rad)),
                      2*np.pi)
-    return np.rad2deg(heading)
-
-if __name__ == "__main__":
-
-    place = getPlaceFromQuery(inputKeywordStr, inputLocationStr)
-    queryList = getQueryListFromPlace(place)
-
-    locs = getLocations(place.geo_location['lat'], place.geo_location['lng'])
-    tokens = []
-    for loc in locs:
-        lat, lng, heading = loc
-        tokens.append(camfindPost(getImageUrl(lat, lng, heading)))
-
-    for token in tokens:
-        print camfindGet(token)
+    return 180. - np.rad2deg(heading) # sign change makes consistent with heading in places.js
