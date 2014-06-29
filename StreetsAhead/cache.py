@@ -32,7 +32,7 @@ def cache_image(db, cur, panoID, heading, url, token, text):
     cur.execute("""INSERT INTO images
                    (panoID, heading, url, camfindToken, text)
                    VALUES (%s, %s, %s, %s, %s);""",
-                   (panoID, heading, url, token, text))
+                   (panoID, float(heading), url, token, text))
     db.commit()
     print "executed cache_image"
 
@@ -42,7 +42,9 @@ def getCacheText(db, cur, panoID, heading, deltaHeading=10.):
     cur.execute("""SELECT text FROM images
                    WHERE panoId = %s
                    AND heading BETWEEN %s AND %s""",
-                   (panoID, heading-deltaHeading, heading+deltaHeading))
+                   (panoID,
+                    float(heading-deltaHeading),
+                    float(heading+deltaHeading)))
     try:
         text = cur.fetchone()[0]
         return text
