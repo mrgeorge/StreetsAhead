@@ -1,4 +1,5 @@
 import pymysql
+import time
 
 import ingest, imToText
 
@@ -19,17 +20,34 @@ for category in categories:
     cur.execute(query, args)
 
     for row in cur.fetchall():
-        placeName, address, lat, lng = row
-        lat = float(lat)
-        lng = float(lng)
+        time.sleep(0.2)
+        placeName, address, mqlat, mqlng = row
+
+        # use google's coordinates instead of mapquest's
+        try:
+            location = ingest.locateAddress(placeName + " " + address)[0]
+        except IndexError:
+            try:
+                location = ingest.locateAddress(address)[0]
+            except IndexError:
+                print "Warning: unable to locate", placeName, address
+                continue
+        lat = location.geo_location["lat"]
+        lng = location.geo_location["lng"]
 
         # get pano location near place
         panoID, panoLat, panoLng = ingest.get_pano_function(lat, lng)
 
-        # computing heading from pano to place
-        heading = ingest.getHeading(panoLat, panoLng, lat, lng)
+        print lat, lng, panoLat, panoLng
 
-        print placeName, address, panoID, heading
+        if panoID == "NULL":
+            print "Warning: no pano found for ", placeName, address
+            continue
+
+        # computing heading from pano to place
+        heading = ingest.getHeading(lat, lng, panoLat, panoLng)
+
+        print placeName, address, panoID, panoLat, panoLng, heading
 
 #        panoLists = imToText.pano_to_text_function(panoID,
 #                                                   panoLat,
