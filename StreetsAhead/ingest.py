@@ -1,6 +1,7 @@
 import re
-import urllib2
 
+import urllib2
+import numpy as np
 from BeautifulSoup import BeautifulStoneSoup
 import googleplaces
 
@@ -74,8 +75,8 @@ def get_pano_function(lat, lng):
     if len(allDP) > 0:
         dp = allDP[0]
         pano_id = [attr[1] for attr in dp.attrs if attr[0]=='pano_id'][0]
-        pano_lat = [attr[1] for attr in dp.attrs if attr[0]=='lat'][0]
-        pano_lng = [attr[1] for attr in dp.attrs if attr[0]=='lng'][0]
+        pano_lat = [float(attr[1]) for attr in dp.attrs if attr[0]=='lat'][0]
+        pano_lng = [float(attr[1]) for attr in dp.attrs if attr[0]=='lng'][0]
     else:
         pano_id = "NULL"
         pano_lat = "NULL"
@@ -83,6 +84,19 @@ def get_pano_function(lat, lng):
 
     return (pano_id, pano_lat, pano_lng)
 
+def getHeading(lat1, lng1, lat2, lng2):
+    """Compute heading in degrees from one location to another
+
+    Following http://williams.best.vwh.net/avform.htm#Crs
+    """
+
+    lat1rad, lng1rad, lat2rad, lng2rad = np.deg2rad([lat1, lng1, lat2, lng2])
+    heading = np.mod(np.arctan2(np.sin(lng1rad - lng2rad) * np.cos(lat2rad),
+                     np.cos(lat1rad) * np.sin(lat2rad) -
+                        np.sin(lat1rad) * np.cos(lat2rad) *
+                        np.cos(lng1rad - lng2rad)),
+                     2*np.pi)
+    return np.rad2deg(heading)
 
 if __name__ == "__main__":
 
