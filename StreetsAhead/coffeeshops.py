@@ -1,9 +1,13 @@
 import pymysql
 import time
 
-import ingest, imToText
+import ingest, imToText, cache
+from config import *
 
-db = pymysql.connect(user="guest", host="localhost", port=3306, db="yelp")
+with open(MYSQL_KEY_FILE, 'r') as ff:
+    username, password = ff.readline().split()
+db = pymysql.connect(user=username, passwd=password, host="localhost",
+                     port=3306, db="yelp")
 cur = db.cursor()
 
 categories = ("starbuck", "peet's", "philz", "blue bottle") # stem names
@@ -38,7 +42,14 @@ for category in categories:
         # get pano location near place
         panoID, panoLat, panoLng = ingest.get_pano_function(lat, lng)
 
-        print lat, lng, panoLat, panoLng
+
+        cache.cache_place_function(db,
+                                   cur,
+                                   placeName,
+                                   address,
+                                   lat,
+                                   lng,
+                                   panoID)
 
         if panoID == "NULL":
             print "Warning: no pano found for ", placeName, address
@@ -49,10 +60,12 @@ for category in categories:
 
         print placeName, address, panoID, panoLat, panoLng, heading
 
-#        panoLists = imToText.pano_to_text_function(panoID,
-#                                                   panoLat,
-#                                                   panoLng,
-#                                                   heading,
-#                                                   placeName,
-#                                                   db, cur)
-#        panoIDList, panoLatList, panoLngList, headingList, textList, bestPanoID, bestHeading = panoLists
+        panoLists = imToText.pano_to_text_function(panoID,
+                                                   panoLat,
+                                                   panoLng,
+                                                   heading,
+                                                   placeName,
+                                                   db, cur)
+        panoIDList, panoLatList, panoLngList, headingList, textList, bestPanoID, bestHeading = panoLists
+
+        time.sleep(1000)
