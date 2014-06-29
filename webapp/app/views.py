@@ -87,7 +87,7 @@ def pano_to_text_handler():
     heading = float(request.args.get('heading', 0.))
     placeName = request.args.get('placeName', 'NULL')
 
-    print panoID, placeName
+    print panoID, panoLat, panoLng, heading, placeName
 
     panoLists = imToText.pano_to_text_function(panoID,
                                                panoLat,
