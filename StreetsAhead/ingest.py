@@ -48,17 +48,29 @@ def getQueryListFromPlace(place):
 def getLocations(lat0, lng0, heading=0.):
     """Generate list of (lat, lng) coordinates near initial search position"""
     # TODO - expand search list to neighboring points along road
-    lats = [lat0, lat0, lat0]
-    lngs = [lng0, lng0, lng0]
-    headings = [heading % 360, (heading+45) % 360, (heading-45) % 360]
+#    lats = [lat0, lat0, lat0]
+#    lngs = [lng0, lng0, lng0]
+#    headings = [heading % 360, (heading+45) % 360, (heading-45) % 360]
+    lats = [lat0, lat0, lat0, lat0, lat0]
+    lngs = [lng0, lng0, lng0, lng0, lng0]
+    headings = [heading % 360,
+                (heading+50) % 360,
+                (heading+25) % 360,
+                (heading-25) % 360,
+                (heading-50) % 360]
     return zip(lats, lngs, headings)
 
-def getImageUrl(lat, lng, heading, size="640x640", fov=50):
+#def getImageUrl(lat, lng, heading, size="640x640", fov=50):
+def getImageUrl(lat, lng, heading, size="640x640", fov=30, addKey=True):
     """Call StreetView API to get image for coordinates"""
 
     urlbase = "http://maps.googleapis.com/maps/api/streetview"
 
     url = "{urlbase}?location={lat},{lng}&heading={heading}&fov={fov}&size={size}".format(urlbase=urlbase, lat=lat, lng=lng, heading=heading, fov=fov, size=size)
+
+    if addKey:
+        url += "&key={}".format(GOOGLE_KEY)
+        url = url.replace("http://", "https://")
 
     return url
 
