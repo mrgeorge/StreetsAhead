@@ -1,5 +1,7 @@
 from pymysql import IntegrityError
 
+import imToText
+
 def cache_place_function(db, cur, placeName, address, lat, lng, panoID):
     """Cache location to places table in SQL db."""
 
@@ -15,7 +17,7 @@ def cache_pano(db, cur, panoID, panoLat, panoLng):
     db.ping(True)
     try:
         cur.execute("""INSERT INTO panoLocs (panoID, panoLat, panoLng)
-                       VALUES (%s, %s, %s)""", (panoID, panoLat, panoLng))
+                       VALUES (%s, %s, %s);""", (panoID, panoLat, panoLng))
         db.commit()
     except IntegrityError:
         # Ignore if panoID is already stored in table
@@ -36,12 +38,12 @@ def cache_image(db, cur, panoID, heading, url, token, text):
     db.commit()
     print "executed cache_image"
 
-def getCacheText(db, cur, panoID, heading, deltaHeading=10.):
+def getCacheText(db, cur, panoID, heading, deltaHeading=5.):
     """Check if image text already exists and if so return it, else None"""
     db.ping(True)
     cur.execute("""SELECT text FROM images
                    WHERE panoId = %s
-                   AND heading BETWEEN %s AND %s""",
+                   AND heading BETWEEN %s AND %s;""",
                    (panoID,
                     float(heading-deltaHeading),
                     float(heading+deltaHeading)))
@@ -50,3 +52,29 @@ def getCacheText(db, cur, panoID, heading, deltaHeading=10.):
         return text
     except TypeError:
         return None
+
+def updateMissedGets(db, cur):
+    """Try again to get missing image labels for entries with post tokens"""
+    db.ping(True)
+    cur.execute("""SELECT imageID, camfindToken
+                   FROM images
+                   WHERE text = "NULL"
+                   AND camfindToken != "NULL";
+                """)
+    tokenList = []
+    imageIDList = []
+    for row in cur.fetchall():
+        imageID, camfindToken = row
+        imageIDList.append(imageID)
+        tokenList.append(camfindToken)
+    textList = imToText.getImageLabels(tokenList)
+
+    updateCount = 0
+    for imageID, text in zip(imageIDList, textList):
+        if text != "NULL":
+            cur.execute("""UPDATE images
+                           SET text = %s
+                           WHERE imageID = %s;
+                        """, (text, imageID))
+            updateCount += 1
+    print "updateMissedGets retreived {} missing labels".format(updateCount)
