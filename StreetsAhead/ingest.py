@@ -69,7 +69,6 @@ def get_pano_function(lat, lng):
 
     Warning: uses an undocumented API
     """
-    print lat, lng
     urlbase = "http://cbk0.google.com/cbk?output=xml&hl=x-local"
     ff = urllib2.urlopen("{}&ll={},{}".format(urlbase, lat, lng))
     xml = ff.read()

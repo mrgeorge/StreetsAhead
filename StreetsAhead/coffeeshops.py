@@ -67,5 +67,3 @@ for category in categories:
                                                    placeName,
                                                    db, cur)
         panoIDList, panoLatList, panoLngList, headingList, textList, bestPanoID, bestHeading = panoLists
-
-        time.sleep(1000)
