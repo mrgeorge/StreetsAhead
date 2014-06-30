@@ -123,7 +123,7 @@ def pano_to_text_function(panoID, panoLat, panoLng, heading, placeName, db, cur)
     newTextList = getImageLabels(tokenList)
 
     # Update textList with any new labels we received
-    for ii, newText in zip(missingList, newTextList):
+    for ii, newText, url, token in zip(missingList, newTextList, urlList, tokenList):
         if newText is not None: # got a new image text label
             textList[ii] = newText
         else:
@@ -133,8 +133,8 @@ def pano_to_text_function(panoID, panoLat, panoLng, heading, placeName, db, cur)
         cache.cache_image(db, cur,
                           panoIDList[ii],
                           headingList[ii],
-                          urlList[ii],
-                          tokenList[ii],
+                          url,
+                          token,
                           textList[ii])
 
     # Get panoID and heading for best matching text
