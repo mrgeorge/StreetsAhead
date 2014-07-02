@@ -23,17 +23,17 @@ cur = db.cursor()
 # ROUTING/VIEW FUNCTIONS
 @app.route('/')
 def landing():
-    return render_template('landing2.html')
+    return render_template('landing.html')
 
 @app.route('/slides')
 def about():
     # Renders slides.html.
-    return render_template('slides2.html')
+    return render_template('slides.html')
 
 @app.route('/faq')
 def contact():
     # Renders author.html.
-    return render_template('faq2.html')
+    return render_template('faq.html')
 
 @app.errorhandler(404)
 def page_not_found(error):
