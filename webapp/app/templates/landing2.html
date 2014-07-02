@@ -1,0 +1,98 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="container-full" id="topofpage">
+
+      <div class="row">
+       
+        <div class="col-lg-12 text-center v-center">
+          
+          <h1>Streets Ahead</h1>
+          <p class="subhead">Pointing you in the right direction</p>
+          
+          <br>
+          
+          <a href="/go" class="btn btn-success btn-lg">Get Going!</a>
+	  <a href="#" class="btn btn-default btn-lg" id="LearnMore">Learn More</a>
+
+        </div>
+        
+      </div> <!-- /row -->
+  
+</div> <!-- /container full -->
+
+
+<!-- Marketing messaging and featurettes
+================================================== -->
+<!-- Wrap the rest of the page in another container to center all the content. -->
+<div class="container marketing" id="details">
+<br>
+
+  <!-- START THE FEATURETTES -->
+
+  <div class="featurette">
+    <img class="featurette-image img-rounded pull-right" src={{ url_for('static', filename='images/zacharys.png') }}>
+    <h2 class="featurette-heading">Cutting-Edge Image Recognition
+<!--    <span class="text-muted">Improving Google Street View</span> -->
+    </h2>
+    <p class="lead">Accurate and quick descriptions of Google Street
+    View imagery based on machine learning algorithms and human supervision.</p>
+  </div>
+
+  <hr class="featurette-divider">
+
+  <div class="featurette">
+    <img class="featurette-image img-rounded pull-left" src={{
+    url_for('static', filename='images/udupi.png') }} style="border: 0px;">
+    <h2 class="featurette-heading">Improved Search Results</h2>
+    <p class="lead">Find the entrance to that restaurant you're
+    looking for. Ground truth from neighborhood signs gives more precise locations
+    than address geocodes.</p>
+  </div>
+
+  <hr class="featurette-divider">
+
+  <div class="featurette">
+    <img class="featurette-image img-circle pull-right" style="width: 350px;" src={{ url_for('static', filename='images/cat.png') }}>
+    <h2 class="featurette-heading">Context for Your World</h2>
+    <p class="lead">Image labels can be passed to screen readers for
+    the visually impaired or translated into different
+    languages. Soon, you'll be able to reverse search for all the cats found in Street View images.</p>
+  </div>
+
+  <hr class="featurette-divider">
+
+  <!-- /END THE FEATURETTES -->
+
+
+  <!-- FOOTER -->
+  <footer>
+    <p class="pull-right" id="BackToTop"><a href="#">Back to top</a></p>
+    <p>Template from <a href="http://www.bootply.com">Bootply</a>.</p>
+  </footer>
+
+</div><!-- /.container -->
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function (){
+    $("#LearnMore").click(function (){
+      $('html, body').animate({
+        scrollTop: $("#details").offset().top
+      }, 500);
+    });
+  });
+
+  $(document).ready(function (){
+    $("#BackToTop").click(function (){
+      $('html, body').animate({
+        scrollTop: $("#topofpage").offset().top
+      }, 500);
+    });
+  });
+
+</script>
+{% endblock %}
