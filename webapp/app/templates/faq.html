@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Streets Ahead FAQ">
+    <meta name="author" content="Matt George">
+
+    <title>Streets Ahead</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <!-- CSS for http://tympanus.net/codrops/2013/04/19/responsive-multi-level-menu/-->
+    <link href="{{ url_for('static', filename='css/component.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/default.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/main.min.css') }}" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <div class="container-full" id="topofpage">
+      <div class="col-lg-12 text-center">
+        <h1>Streets Ahead</h1>
+      </div>
+        <div class="row">
+	  <div class="col-lg-2"></div>
+            <div class="col-lg-8">
+                <h2>Frequently Asked Questions</h2>
+                <h3>Why the name Streets Ahead?</h3>
+	        <p>If you have to ask, you're <a href="https://www.youtube.com/watch?v=rf1GSjo4zSY">streets behind</a>.</p>
+                <h3>What browsers does the site work in?</h3>
+	        <p>Currently it has been tested in Safari 7.0.4 and
+                  Chrome 35. Firefox has some trouble.</p>
+                <h3>How can I send feedback?</h3>
+	        <p>Feel free to <a href="mailto:mattgeorge1+StreetsAhead@gmail.com">email me</a> or
+                  send a <a href="https://github.com/mrgeorge/StreetsAhead">pull
+                  request</a>.
+	        </p>
+            </div>
+	  <div class="col-lg-2"></div>
+        </div>
+
+    </div>
+    <!-- /.container-full -->
+
+<nav id="dl-menu" class="dl-menuwrapper" role="navigation">
+  <button class="dl-trigger">Open Menu</button>
+  <ul class="dl-menu">
+    <li>
+      <a href="/"><strong>Streets Ahead</strong></a>
+    </li>
+    <li>
+      <a href="/go">Search Map</a>
+    </li>
+    <li>
+      <a href="#">Author</a>
+      <ul class="dl-submenu">
+        <li>
+          <img src="{{url_for('static', filename='images/matt.jpg') }}" alt="Matt George" class="author-photo">
+          <h4>Matt George</h4>
+          <p>Astronomer turned data scientist</p>
+        </li>
+        <li>
+          <a href="https://www.linkedin.com/in/mattgeorge0" target="_blank"><i class="icon-linkedin"></i>LinkedIn</a>
+        </li>
+        <li>
+          <a href="http://github.com/mrgeorge" target="_blank"><i class="icon-github"></i>GitHub</a>
+        </li>
+	<li>
+          <a href="mailto:mattgeorge1+StreetsAhead@gmail.com"><i class="icon-envelope-alt"></i>Email</a>
+        </li>
+      </ul><!-- /.dl-submenu -->
+    </li>
+    <li>
+      <a href="/slides">Slides</a>
+    </li>
+    <li>
+      <a href="http://github.com/mrgeorge/StreetsAhead" target="_blank">View on Github</a>
+    </li>
+  </ul><!-- /.dl-menu -->
+</nav><!-- /.dl-menuwrapper -->
+
+
+
+    
+    <!-- JavaScript -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <!-- Load Modernizr -->
+    <script src="{{ url_for('static', filename='js/modernizr.custom.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dlmenu.js') }}"></script>
+<!--    <script src="js/bootstrap.js"></script> -->
+
+<script>
+  $(function() {
+    $( '#dl-menu' ).dlmenu();
+  });
+</script>
+
+  
+<!-- Google Analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52170229-1', 'streetsaheadmaps.com');
+  ga('require', 'displayfeatures');
+  ga('send', 'pageview');
+</script>
+
+</body>
+
+</html>
