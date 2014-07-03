@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, jsonify, request
+from flask import render_template, jsonify, request, send_from_directory
 from app import app, host, port, user, passwd, db
 from app.helpers.database import con_db
 
@@ -25,6 +25,10 @@ cur = db.cursor()
 def landing():
     return render_template('landing.html')
 
+@app.route('/go')
+def go():
+    return render_template('go.html')
+
 @app.route('/slides')
 def about():
     # Renders slides.html.
@@ -35,6 +39,10 @@ def contact():
     # Renders author.html.
     return render_template('faq.html')
 
+@app.route('/robots.txt')
+def static_from_root():
+      return send_from_directory(app.static_folder, request.path[1:])
+
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html'), 404
@@ -42,10 +50,6 @@ def page_not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('500.html'), 500
-
-@app.route('/go')
-def go():
-    return render_template('go.html')
 
 # ASYNCHRONOUS HANDLERS
 @app.route('/_cache_place', methods = ['POST'])
