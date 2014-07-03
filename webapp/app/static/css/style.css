@@ -202,6 +202,11 @@ h1 {
   text-decoration:none;
 }
 
+a.faq-link {
+  color:lightblue;
+  text-decoration:none;
+}
+
 .v-center {
   margin-top:15%;
 }
