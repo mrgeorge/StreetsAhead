@@ -4,6 +4,13 @@ import time
 import ingest, imToText, cache
 from config import *
 
+"""Script to push coffee shop locations through CamFind to test recall rate.
+Coffee shops are taken from Yelp database for SF Bay Area scraped by
+Mike Ramm. Results show that recall rate for Starbucks and Peet's is
+significantly higher than for Blue Bottle and Philz, likely because the
+latter's signs are smaller and less readable.
+"""
+
 with open(MYSQL_KEY_FILE, 'r') as ff:
     username, password = ff.readline().split()
 db = pymysql.connect(user=username, passwd=password, host="localhost",
