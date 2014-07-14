@@ -1,8 +1,6 @@
 import os
 
-CAFFE_DIR = "/Users/mgeorge/insight/caffe"
-LEVELDB_DIR = "/Users/mgeorge/insight/leveldbs"
-PROTO_DIR = "/Users/mgeorge/insight/protos"
+from StreetsAhead.config import *
 
 def createLevelDB(imgDir, labelFile, outLevelDB):
     """Port of caffe/examples/imagenet/create_imagenet.sh
@@ -43,9 +41,6 @@ def resumeTraining(prototxtFile, solverstateFile):
 
 if __name__ == "__main__":
 
-    trainDir = "/Users/mgeorge/insight/masterTrainData"
-    valDir = "/Users/mgeorge/insight/masterValData"
-
     #    objectives = ("Char0", "Char1", "Char2", "WordLen")
     objectives = ("Char0",)
 
@@ -54,15 +49,18 @@ if __name__ == "__main__":
         trainLevelDB = "master_{}_train_leveldb_short".format(obj)
         valLevelDB = "master_{}_val_leveldb_short".format(obj)
 
-        createLevelDB(trainDir, trainDir + "/train{}.txt".format(obj),
+        createLevelDB(MASTER_TRAIN_DATA_DIR,
+                      MASTER_TRAIN_DATA_DIR + "/train{}.txt".format(obj),
                       trainLevelDB)
-        createLevelDB(valDir, valDir + "/val{}.txt".format(obj), valLevelDB)
+        createLevelDB(MASTER_VAL_DATA_DIR,
+                      MASTER_VAL_DATA_DIR + "/val{}.txt".format(obj),
+                      valLevelDB)
 
         print "computing image mean"
         trainMeanProto = "master_{}_mean_short.binaryproto".format(obj)
         computeImageMean(trainLevelDB, trainMeanProto)
 
         print "training"
-        prototxtFile = "/Users/mgeorge/insight/protos/" \
-            "master_{}_solver_short.prototxt".format(obj)
+        prototxtFile = PROTO_DIR + \
+            "/master_{}_solver_short.prototxt".format(obj)
         train(prototxtFile)

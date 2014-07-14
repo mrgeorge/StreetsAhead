@@ -9,6 +9,8 @@ from sklearn.preprocessing import LabelEncoder
 from BeautifulSoup import BeautifulStoneSoup
 import skimage.io, skimage.transform
 
+from StreetsAhead.config import *
+
 MAX_L = 5 # longest string to look for
 N_NETS = MAX_L + 1 # one network for each char + one for length fig 12 1312.6082
 
@@ -251,29 +253,27 @@ if __name__ == "__main__":
     objectives = ("Char0",)
     # TO DO - need to loop over some parts below to get different labels for each objective
 
-    icdarTrainDir = "/Users/mgeorge/insight/icdar2013/localization/train"
-    icdarValDir = "/Users/mgeorge/insight/icdar2013/localization/test"
+    icdarTrainDir = ICDAR_DIR + "/train"
+    icdarValDir = ICDAR_DIR + "/test"
 
     icdarTrainLabelFiles = convertIcdar2013Localization(icdarTrainDir, "train",
                                                         objectives)
     icdarValLabelFiles = convertIcdar2013Localization(icdarValDir, "val",
                                                       objectives)
 
-    svtImgDir = "/Users/mgeorge/insight/streetview_text/data/img"
+    svtImgDir = SVT_DIR + "/img"
     # Note: I'm switching the train and test sets since test is larger
-    svtTrainXML = "/Users/mgeorge/insight/streetview_text/data/test.xml"
-    svtValXML = "/Users/mgeorge/insight/streetview_text/data/train.xml"
+    svtTrainXML = SVT_DIR + "/test.xml"
+    svtValXML = SVT_DIR + "/train.xml"
 
     svtTrainLabelFiles = convertSVT(svtImgDir, svtTrainXML, "train",
                                     objectives)
     svtValLabelFiles = convertSVT(svtImgDir, svtValXML, "val",
                                   objectives)
 
-    chars74KDir = "/Users/mgeorge/insight/chars74k/English"
     chars74KTypes = ["Fnt", "Hnd/Img", "Img/GoodImg/Bmp"] # subdirs with images
-    chars74KTrainLabelFiles, chars74KTrainImgDirs = convertChars74K(chars74KDir,
-        chars74KTypes, "train", objectives)
-
+    chars74KTrainLabelFiles, chars74KTrainImgDirs = convertChars74K(
+        CHARS74K_DIR, chars74KTypes, "train", objectives)
 
     # compile all the label files
     allTrainLabelFiles = []
@@ -295,13 +295,11 @@ if __name__ == "__main__":
     allValImgDirs.extend([icdarValDir] * len(icdarValLabelFiles))
     allValImgDirs.extend([svtImgDir] * len(svtValLabelFiles))
 
-    masterTrainDataDir = "/Users/mgeorge/insight/masterTrainData"
-    masterValDataDir = "/Users/mgeorge/insight/masterValData"
-    masterTrainLabelFile = makeMasterDataDir(masterTrainDataDir,
+    masterTrainLabelFile = makeMasterDataDir(MASTER_TRAIN_DATA_DIR,
                                              allTrainLabelFiles,
                                              allTrainImgDirs,
                                              "train")
-    masterValLabelFile = makeMasterDataDir(masterValDataDir,
+    masterValLabelFile = makeMasterDataDir(MASTER_VAL_DATA_DIR,
                                            allValLabelFiles,
                                            allValImgDirs,
                                            "val")
