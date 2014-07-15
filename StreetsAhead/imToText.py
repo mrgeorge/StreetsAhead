@@ -4,8 +4,8 @@ from ssl import SSLError
 import unirest
 from fuzzywuzzy import fuzz, process
 
+import StreetsAhead
 from StreetsAhead.config import *
-from StreetsAhead import ingest, cache
 
 with open(CAMFIND_KEY_FILE, 'r') as ff:
     CAMFIND_KEY = ff.readline().replace('\n', '')
@@ -81,7 +81,7 @@ def postImages(locList):
     tokenList = []
     for loc in locList:
         lat, lng, heading = loc
-        url = ingest.getImageUrl(lat, lng, heading)
+        url = StreetsAhead.ingest.getImageUrl(lat, lng, heading)
         urlList.append(url)
         tokenList.append(camfindPost(url))
 
@@ -95,7 +95,7 @@ def getImageLabels(tokenList):
     return textList
 
 def pano_to_text_function(panoID, panoLat, panoLng, heading, placeName, db, cur):
-    locList = ingest.getLocations(panoLat, panoLng, heading=heading)
+    locList = StreetsAhead.ingest.getLocations(panoLat, panoLng, heading=heading)
     panoIDList = [panoID for loc in locList]
     panoLatList = [loc[0] for loc in locList]
     panoLngList = [loc[1] for loc in locList]
@@ -106,10 +106,10 @@ def pano_to_text_function(panoID, panoLat, panoLng, heading, placeName, db, cur)
     # Cache pano locations for each entry in locList
     # NOTE: currently assumes panoID is same for each loc
     # if panoID's are different, must cache each one
-    cache.cache_pano(db, cur, panoID, panoLat, panoLng)
+    StreetsAhead.cache.cache_pano(db, cur, panoID, panoLat, panoLng)
 
     # First check the cache to get list of missing image labels
-    textList = [cache.getCacheText(db, cur, panoID, loc[2]) for loc in locList]
+    textList = [StreetsAhead.cache.getCacheText(db, cur, panoID, loc[2]) for loc in locList]
     missingList = []
     for ii, text in enumerate(textList):
         if text is None or text == "NULL":
@@ -130,7 +130,7 @@ def pano_to_text_function(panoID, panoLat, panoLng, heading, placeName, db, cur)
             textList[ii] = "NULL"
 
         # Save new label to cache
-        cache.cache_image(db, cur,
+        StreetsAhead.cache.cache_image(db, cur,
                           panoIDList[ii],
                           headingList[ii],
                           url,
