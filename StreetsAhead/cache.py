@@ -1,6 +1,7 @@
 from pymysql import IntegrityError
+import pandas as pd
 
-import imToText
+import StreetsAhead
 
 def cache_place_function(db, cur, placeName, address, lat, lng, panoID):
     """Cache location to places table in SQL db."""
@@ -67,7 +68,7 @@ def updateMissedGets(db, cur):
         imageID, camfindToken = row
         imageIDList.append(imageID)
         tokenList.append(camfindToken)
-    textList = imToText.getImageLabels(tokenList)
+    textList = StreetsAhead.imToText.getImageLabels(tokenList)
 
     updateCount = 0
     for imageID, text in zip(imageIDList, textList):
@@ -78,3 +79,32 @@ def updateMissedGets(db, cur):
                         """, (text, imageID))
             updateCount += 1
     print "updateMissedGets retreived {} missing labels".format(updateCount)
+
+def appendCSVToTable(db, cur, tableName, csvFile, index_col=None):
+    """Copy CSV data to database table.
+
+    Built to append results for coffeeshop test with Yelp locations into
+    main database.
+
+    Inputs:
+        db, cur - sql db and cursor objects
+        tableName - string name of table in SQL database
+        csvFile - string name with path of CSV file from SQL dump
+        index_col - column number to use as index (default = None)
+                    Passed as arg to pd when reading data frame.
+                    Index is assumed to be auto incremented in SQL table
+                       so CSV index value is not inserted.
+    """
+
+    df = pd.read_csv(csvFile, index_col=index_col)
+    df.fillna("NULL", inplace=True)
+    colNames = "({})".format(','.join(df.columns))
+    placeHolders = "({})".format(','.join(['%s']*len(df.columns)))
+    query = "INSERT IGNORE INTO {} {} VALUES {}".format(tableName,
+                                                 colNames,
+                                                 placeHolders)
+    data = [tuple(row[1].values) for row in df.iterrows()]
+    cur.executemany(query, data)
+    db.commit()
+
+    print "Appended {} to {}.{}".format(csvFile, db.db, tableName)
